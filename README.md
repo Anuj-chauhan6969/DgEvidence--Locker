@@ -131,3 +131,10 @@ This project demonstrates practical experience with:
 ## 📌 Disclaimer
 
 This is an educational/portfolio project and should receive a professional security review before being used to store real-world sensitive evidence.
+
+## 📌 preview of project working
+
+## 1. website start
+<img width="1166" height="596" alt="image" src="https://github.com/user-attachments/assets/26a5fcca-8a7e-45cd-b837-d842c0f741fd" />
+
+
