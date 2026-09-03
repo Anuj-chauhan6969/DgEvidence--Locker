@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cases – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 24px
+        }
+
+        .case-card {
+            background: rgba(30, 41, 59, .8);
+            border: 1px solid rgba(71, 85, 105, .3);
+            border-radius: 16px;
+            padding: 24px;
+            transition: all .3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden
+        }
+
+        .case-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f97316, #ea580c)
+        }
+
+        .case-card:hover {
+            border-color: rgba(249, 115, 22, .4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, .3)
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 14px
+        }
+
+        .case-id {
+            font-family: monospace;
+            font-size: 12px;
+            color: #f97316;
+            background: rgba(249, 115, 22, .1);
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(249, 115, 22, .2)
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .badge-pending {
+            background: rgba(251, 191, 36, .15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-verified {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-archived {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .3)
+        }
+
+        .case-name {
+            color: #f1f5f9;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+
+        .case-desc {
+            color: #64748b;
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 14px
+        }
+
+        .case-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 12px;
+            color: #475569
+        }
+
+        .create-panel {
+            background: rgba(30, 41, 59, .8);
+            border: 1px dashed rgba(249, 115, 22, .4);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 8px
+        }
+
+        .create-panel h3 {
+            color: #f97316;
+            margin-bottom: 16px;
+            font-size: 15px;
+            font-weight: 700
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px
+        }
+
+        @media(max-width:600px) {
+            .form-row {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .form-group {
+            margin-bottom: 14px
+        }
+
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(15, 23, 42, .7);
+            border: 1px solid rgba(71, 85, 105, .5);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 14px;
+            outline: none;
+            transition: border .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, .15)
+        }
+
+        .btn-create {
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 14px
+        }
+
+        .btn-create:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, .3)
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #475569
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+            color: #334155
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, .15);
+            border: 1px solid rgba(34, 197, 94, .3);
+            color: #86efac
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #fca5a5
+        }
+
+        .toggle-create {
+            cursor: pointer;
+            color: #f97316;
+            font-size: 13px;
+            font-weight: 600;
+            background: rgba(249, 115, 22, .1);
+            border: 1px solid rgba(249, 115, 22, .3);
+            padding: 8px 20px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .toggle-create:hover {
+            background: rgba(249, 115, 22, .2)
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('home') }}"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+                    <li><a href="{{ url_for('my_evidence') }}"><i class="fas fa-folder-open"></i><span>My
+                                Evidence</span></a></li>
+                    <li><a href="{{ url_for('upload') }}"><i class="fas fa-file-upload"></i><span>Upload</span></a></li>
+                    <li class="active"><a href="{{ url_for('cases') }}"><i
+                                class="fas fa-briefcase"></i><span>Cases</span></a></li>
+                    <li><a href="{{ url_for('recent_activity') }}"><i class="fas fa-history"></i><span>Activity
+                                Log</span></a></li>
+                    <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1><i class="fas fa-briefcase" style="color:#f97316;margin-right:10px"></i>Case Management</h1>
+                    <p>Organise your evidence into cases and track their status</p>
+                </div>
+                <div class="header-actions">
+                    <button class="toggle-create" onclick="toggleCreate()">
+                        <i class="fas fa-plus" id="create-icon"></i> <span id="create-label">New Case</span>
+                    </button>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat,msg in messages %}
+            <div class="alert alert-{{ cat }}"><i class="fas fa-info-circle"></i> {{ msg }}</div>
+            {% endfor %}{% endif %}
+            {% endwith %}
+
+            <!-- Create Case Panel -->
+            <div class="create-panel" id="create-panel" style="display:none">
+                <h3><i class="fas fa-folder-plus"></i> Create New Case</h3>
+                <form method="POST" action="{{ url_for('create_case') }}">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Case Name <span style="color:#ef4444">*</span></label>
+                            <input type="text" name="name" placeholder="e.g. Robbery Investigation 2026" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" name="description" placeholder="Brief description of the case">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-create">
+                        <i class="fas fa-folder-plus"></i> Create Case
+                    </button>
+                </form>
+            </div>
+
+            <!-- Cases Grid -->
+            {% if cases %}
+            <div class="cases-grid">
+                {% for case in cases %}
+                <div class="case-card">
+                    <div class="case-header">
+                        <span class="case-id">{{ case.case_id }}</span>
+                        <span class="badge badge-{{ case.status }}">{{ case.status | title }}</span>
+                    </div>
+                    <div class="case-name">{{ case.name }}</div>
+                    <div class="case-desc">{{ case.description or 'No description provided.' }}</div>
+                    <div class="case-meta">
+                        <span><i class="fas fa-calendar-alt" style="color:#f97316;margin-right:4px"></i>{{
+                            case.created_at[:10] }}</span>
+                        <span style="flex:1"></span>
+                        <a href="{{ url_for('my_evidence') }}?q={{ case.case_id }}"
+                            style="color:#f97316;text-decoration:none;font-weight:600;font-size:12px">
+                            <i class="fas fa-search"></i> View Evidence
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-briefcase"></i>
+                <h3 style="color:#334155;margin-bottom:8px">No cases yet</h3>
+                <p>Create your first case to start organising evidence.</p>
+                <button class="btn-create" onclick="toggleCreate()" style="margin-top:16px">
+                    <i class="fas fa-plus"></i> Create First Case
+                </button>
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+
+    <script>
+        function toggleCreate() {
+            const panel = document.getElementById('create-panel');
+            const icon = document.getElementById('create-icon');
+            const label = document.getElementById('create-label');
+            const open = panel.style.display === 'none';
+            panel.style.display = open ? 'block' : 'none';
+            icon.className = open ? 'fas fa-times' : 'fas fa-plus';
+            label.textContent = open ? 'Cancel' : 'New Case';
+        }
+    </script>
+</body>
+
+</html>

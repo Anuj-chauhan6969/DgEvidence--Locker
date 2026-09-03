@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Evidence – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .search-hero {
+            background: rgba(30, 41, 59, .8);
+            border: 1px solid rgba(249, 115, 22, .2);
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 24px
+        }
+
+        .search-big {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 16px
+        }
+
+        .search-big input {
+            flex: 1;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, .8);
+            border: 2px solid rgba(249, 115, 22, .3);
+            border-radius: 12px;
+            color: #f1f5f9;
+            font-size: 15px;
+            outline: none;
+            transition: border .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .search-big input:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, .15)
+        }
+
+        .search-big button {
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            white-space: nowrap
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap
+        }
+
+        .filter-select {
+            padding: 9px 14px;
+            background: rgba(15, 23, 42, .7);
+            border: 1px solid rgba(71, 85, 105, .5);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif
+        }
+
+        .filter-input {
+            padding: 9px 14px;
+            background: rgba(15, 23, 42, .7);
+            border: 1px solid rgba(71, 85, 105, .5);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 13px;
+            outline: none;
+            font-family: 'Inter', sans-serif
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px
+        }
+
+        .results-count {
+            color: #94a3b8;
+            font-size: 14px
+        }
+
+        .results-count strong {
+            color: #f97316
+        }
+
+        .ev-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        .ev-table th {
+            color: #64748b;
+            font-weight: 600;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(71, 85, 105, .3)
+        }
+
+        .ev-table td {
+            color: #cbd5e1;
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(30, 41, 59, .8);
+            vertical-align: middle
+        }
+
+        .ev-table tr:hover td {
+            background: rgba(249, 115, 22, .04)
+        }
+
+        .table-wrap {
+            background: rgba(30, 41, 59, .7);
+            border: 1px solid rgba(71, 85, 105, .3);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .badge-pending {
+            background: rgba(251, 191, 36, .15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-verified {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .badge-archived {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .3)
+        }
+
+        .ev-id {
+            font-family: monospace;
+            color: #f97316;
+            font-size: 11px
+        }
+
+        .hash-short {
+            font-family: monospace;
+            color: #64748b;
+            font-size: 11px
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-block
+        }
+
+        .btn-download {
+            background: rgba(34, 197, 94, .2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #475569
+        }
+
+        .no-results i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+            color: #334155
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('home') }}"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+                    <li><a href="{{ url_for('my_evidence') }}"><i class="fas fa-folder-open"></i><span>My
+                                Evidence</span></a></li>
+                    <li><a href="{{ url_for('upload') }}"><i class="fas fa-file-upload"></i><span>Upload</span></a></li>
+                    <li><a href="{{ url_for('cases') }}"><i class="fas fa-briefcase"></i><span>Cases</span></a></li>
+                    <li><a href="{{ url_for('recent_activity') }}"><i class="fas fa-history"></i><span>Activity
+                                Log</span></a></li>
+                    <li><a href="{{ url_for('settings') }}"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1><i class="fas fa-search" style="color:#f97316;margin-right:10px"></i>Search Evidence</h1>
+                    <p>Search and filter your uploaded evidence</p>
+                </div>
+            </header>
+
+            <!-- Search & Filters -->
+            <div class="search-hero">
+                <form method="GET" action="{{ url_for('search') }}">
+                    <div class="search-big">
+                        <input type="text" name="q" value="{{ query }}"
+                            placeholder="Search by Evidence ID, title, tags, description...">
+                        <button type="submit"><i class="fas fa-search"></i> Search</button>
+                    </div>
+                    <div class="filters">
+                        <select name="type" class="filter-select">
+                            <option value="">All Types</option>
+                            <option value="image" {{ 'selected' if filter_type=='image' }}>🖼️ Images</option>
+                            <option value="video" {{ 'selected' if filter_type=='video' }}>🎥 Videos</option>
+                            <option value="audio" {{ 'selected' if filter_type=='audio' }}>🎙️ Audio</option>
+                            <option value="doc" {{ 'selected' if filter_type=='doc' }}>📄 Documents</option>
+                            <option value="text" {{ 'selected' if filter_type=='text' }}>✏️ Text Notes</option>
+                            <option value="file" {{ 'selected' if filter_type=='file' }}>📎 Other Files</option>
+                        </select>
+                        <input type="date" name="from" class="filter-input" value="{{ date_from }}" title="From date">
+                        <input type="date" name="to" class="filter-input" value="{{ date_to }}" title="To date">
+                        {% if query or filter_type or date_from or date_to %}
+                        <a href="{{ url_for('search') }}" style="padding:9px 14px;background:rgba(239,68,68,.15);
+               border:1px solid rgba(239,68,68,.3);border-radius:10px;color:#ef4444;text-decoration:none;
+               font-size:13px;font-weight:600">
+                            <i class="fas fa-times"></i> Clear
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results -->
+            <div class="results-header">
+                <div class="results-count">
+                    Found <strong>{{ results|length }}</strong> result(s)
+                    {% if query %} for "<strong>{{ query }}</strong>"{% endif %}
+                </div>
+                <a href="{{ url_for('my_evidence') }}" style="color:#f97316;font-size:13px;text-decoration:none">
+                    <i class="fas fa-arrow-left"></i> Back to My Evidence
+                </a>
+            </div>
+
+            {% if results %}
+            <div class="table-wrap">
+                <table class="ev-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Evidence ID</th>
+                            <th>File Name</th>
+                            <th>Title</th>
+                            <th>Case</th>
+                            <th>SHA-256</th>
+                            <th>Status</th>
+                            <th>Uploaded</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ev in results %}
+                        <tr>
+                            <td style="text-align:center;font-size:18px">{{ ev.emoji }}</td>
+                            <td class="ev-id">{{ ev.evidence_id }}</td>
+                            <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                title="{{ ev.original_name }}">{{ ev.original_name }}</td>
+                            <td style="color:#f1f5f9">{{ ev.title or '—' }}</td>
+                            <td style="font-size:12px;color:#94a3b8">{{ ev.case_ref or '—' }}</td>
+                            <td class="hash-short" title="{{ ev.sha256_hash }}">{{ ev.short_hash }}</td>
+                            <td><span class="badge badge-{{ ev.status }}">{{ ev.status | title }}</span></td>
+                            <td style="color:#64748b;font-size:12px">{{ ev.uploaded_at[:10] }}</td>
+                            <td>
+                                <a href="{{ url_for('download_evidence', evidence_id=ev.evidence_id) }}"
+                                    class="action-btn btn-download">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="no-results">
+                <i class="fas fa-search"></i>
+                <h3 style="color:#334155;margin-bottom:8px">No results found</h3>
+                <p>Try a different search term or remove filters.</p>
+            </div>
+            {% endif %}
+
+        </main>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #ef4444
+        }
+
+        .tab-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 24px;
+            background: rgba(15, 23, 42, .6);
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid rgba(71, 85, 105, .3)
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .tab-btn.active {
+            background: rgba(249, 115, 22, .2);
+            color: #f97316;
+            border: 1px solid rgba(249, 115, 22, .3)
+        }
+
+        .tab-panel {
+            display: none
+        }
+
+        .tab-panel.active {
+            display: block
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        .data-table th {
+            color: #64748b;
+            font-weight: 600;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid rgba(71, 85, 105, .3);
+            white-space: nowrap
+        }
+
+        .data-table td {
+            color: #cbd5e1;
+            padding: 11px 14px;
+            border-bottom: 1px solid rgba(30, 41, 59, .8);
+            vertical-align: middle
+        }
+
+        .data-table tr:hover td {
+            background: rgba(249, 115, 22, .04)
+        }
+
+        .table-wrap {
+            background: rgba(30, 41, 59, .7);
+            border: 1px solid rgba(71, 85, 105, .3);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .badge-pending {
+            background: rgba(251, 191, 36, .15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-verified {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .badge-approved {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-archived {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .3)
+        }
+
+        .badge-admin {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .badge-user {
+            background: rgba(59, 130, 246, .15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, .3)
+        }
+
+        .action-form {
+            display: inline
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            border: none;
+            border-radius: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .btn-verify {
+            background: rgba(34, 197, 94, .2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .btn-verify:hover {
+            background: rgba(34, 197, 94, .35)
+        }
+
+        .btn-reject {
+            background: rgba(239, 68, 68, .2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .btn-reject:hover {
+            background: rgba(239, 68, 68, .35)
+        }
+
+        .btn-archive {
+            background: rgba(148, 163, 184, .15);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, .3)
+        }
+
+        .btn-approve {
+            background: rgba(34, 197, 94, .2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .btn-approve:hover {
+            background: rgba(34, 197, 94, .35)
+        }
+
+        .btn-deny {
+            background: rgba(239, 68, 68, .2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .btn-toggle {
+            background: rgba(251, 191, 36, .15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .ev-id {
+            font-family: monospace;
+            color: #f97316;
+            font-size: 11px
+        }
+
+        .hash-short {
+            font-family: monospace;
+            color: #64748b;
+            font-size: 11px
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, .15);
+            border: 1px solid rgba(34, 197, 94, .3);
+            color: #86efac
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #fca5a5
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, .15);
+            border: 1px solid rgba(59, 130, 246, .3);
+            color: #93c5fd
+        }
+
+        .modal-bg {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center
+        }
+
+        .modal-bg.open {
+            display: flex
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid rgba(249, 115, 22, .3);
+            border-radius: 16px;
+            padding: 32px;
+            width: 100%;
+            max-width: 440px
+        }
+
+        .modal h3 {
+            color: #f1f5f9;
+            margin-bottom: 16px
+        }
+
+        .modal textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(15, 23, 42, .8);
+            border: 1px solid rgba(71, 85, 105, .4);
+            border-radius: 8px;
+            color: #f1f5f9;
+            font-size: 13px;
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Inter', sans-serif
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: flex-end
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #475569
+        }
+
+        .no-data i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            display: block;
+            color: #334155
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active" id="nav-panel"><a href="{{ url_for('admin_dashboard') }}"
+                            onclick="showTabFromNav('users',this);return false;"><i
+                                class="fas fa-tachometer-alt"></i><span>Admin Panel</span></a></li>
+                    <li id="nav-users"><a href="#users" onclick="showTabFromNav('users',this);return false;"><i
+                                class="fas fa-users"></i><span>Users</span></a></li>
+                    <li id="nav-evidence"><a href="#evidence" onclick="showTabFromNav('evidence',this);return false;"><i
+                                class="fas fa-file-alt"></i><span>Evidence</span></a></li>
+                    <li id="nav-deletes"><a href="#deletes" onclick="showTabFromNav('deletes',this);return false;"><i
+                                class="fas fa-trash-alt"></i><span>Delete Requests</span></a></li>
+                    <li id="nav-logs"><a href="#logs" onclick="showTabFromNav('logs',this);return false;"><i
+                                class="fas fa-history"></i><span>Audit Logs</span></a></li>
+                    <li id="nav-otps"><a href="#otps" onclick="showTabFromNav('otps',this);return false;"><i
+                                class="fas fa-key"></i><span>OTP Records</span></a></li>
+                    <li><a href="{{ url_for('admin_settings') }}"><i class="fas fa-cog"></i><span>Settings</span></a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1><i class="fas fa-user-shield" style="color:#ef4444;margin-right:10px"></i>Admin Dashboard</h1>
+                    <p>System-wide control panel — manage users, evidence, and requests</p>
+                </div>
+                <div class="header-actions">
+                    <div class="admin-badge"><i class="fas fa-crown"></i>Administrator</div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat,msg in messages %}
+            <div class="alert alert-{{ cat }}"><i class="fas fa-info-circle"></i> {{ msg }}</div>
+            {% endfor %}{% endif %}
+            {% endwith %}
+
+            <!-- Stats -->
+            <section class="stats-grid" style="margin-bottom:24px">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    <div class="stat-info">
+                        <h3>Total Users</h3>
+                        <p class="stat-value">{{ stats.total_users }}</p>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon orange"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-info">
+                        <h3>Total Evidence</h3>
+                        <p class="stat-value">{{ stats.total_evidence }}</p>
+                        <span class="stat-change neutral">{{ stats.pending_evidence }} pending</span>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon purple"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-info">
+                        <h3>Total Cases</h3>
+                        <p class="stat-value">{{ stats.total_cases }}</p>
+                    </div>
+                </div>
+                <div class="stat-card" style="border-color:rgba(239,68,68,.3)">
+                    <div class="stat-icon" style="background:rgba(239,68,68,.15);color:#ef4444"><i
+                            class="fas fa-trash-alt"></i></div>
+                    <div class="stat-info">
+                        <h3>Delete Requests</h3>
+                        <p class="stat-value"
+                            style="color:{% if stats.pending_delete_requests > 0 %}#ef4444{% else %}#22c55e{% endif %}">
+                            {{ stats.pending_delete_requests }} Pending
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tabs -->
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('users', this)"><i class="fas fa-users"></i> Users ({{
+                    all_users|length }})</button>
+                <button class="tab-btn" onclick="showTab('evidence', this)"><i class="fas fa-file-alt"></i> Evidence ({{
+                    all_evidence|length }})</button>
+                <button class="tab-btn" onclick="showTab('deletes', this)">
+                    <i class="fas fa-trash-alt"></i> Delete Requests
+                    {% if stats.pending_delete_requests > 0 %}<span style="color:#ef4444"> ({{
+                        stats.pending_delete_requests }})</span>{% endif %}
+                </button>
+                <button class="tab-btn" onclick="showTab('logs', this)"><i class="fas fa-history"></i> Audit
+                    Logs</button>
+                <button class="tab-btn" onclick="showTab('otps', this)"><i class="fas fa-key"></i>
+                    OTPs ({{ all_otps|length }})</button>
+            </div>
+
+            <!-- Users Tab -->
+            <div id="tab-users" class="tab-panel active">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in all_users %}
+                            <tr>
+                                <td>#{{ u.id }}</td>
+                                <td style="font-weight:600;color:#f1f5f9">{{ u.username }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>{{ u.mobile or '—' }}</td>
+                                <td><span class="badge badge-{{ u.role }}">{{ u.role | title }}</span></td>
+                                <td>
+                                    <span class="badge"
+                                        style="{% if u.is_active %}background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3){% else %}background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3){% endif %}">
+                                        {{ 'Active' if u.is_active else 'Suspended' }}
+                                    </span>
+                                </td>
+                                <td style="color:#64748b;font-size:12px">{{ u.created_at[:10] }}</td>
+                                <td>
+                                    {% if u.role != 'admin' %}
+                                    <div style="display:flex;gap:4px">
+                                        <form class="action-form" method="POST"
+                                            action="{{ url_for('admin_toggle_user', uid=u.id) }}">
+                                            <button type="submit" class="action-btn btn-toggle"
+                                                title="{{ 'Suspend' if u.is_active else 'Activate' }} User">
+                                                <i class="fas fa-power-off"></i>
+                                            </button>
+                                        </form>
+                                        <form class="action-form" method="POST"
+                                            action="{{ url_for('admin_delete_user', uid=u.id) }}"
+                                            onsubmit="return confirm('PERMANENTLY DELETE this user and all their evidence? This cannot be undone.');">
+                                            <button type="submit" class="action-btn btn-reject" title="Delete User">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    {% else %}<span style="color:#475569">Admin</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8">
+                                    <div class="no-data"><i class="fas fa-users"></i>
+                                        <p>No users found</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Evidence Tab -->
+            <div id="tab-evidence" class="tab-panel">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Evidence ID</th>
+                                <th>Owner</th>
+                                <th>Original Name</th>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Hash (SHA-256)</th>
+                                <th>Case</th>
+                                <th>Status</th>
+                                <th>Uploaded</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ev in all_evidence %}
+                            <tr>
+                                <td class="ev-id">{{ ev.evidence_id }}</td>
+                                <td style="font-weight:600;color:#f1f5f9">{{ ev.username }}</td>
+                                <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                    title="{{ ev.original_name }}">{{ ev.original_name }}</td>
+                                <td><span class="badge badge-{{ ev.status }}">{{ ev.file_type }}</span></td>
+                                <td style="color:#64748b;font-size:12px">{{ (ev.file_size / 1024)|int }} KB</td>
+                                <td class="hash-short" title="{{ ev.sha256_hash }}">{{ ev.sha256_hash[:20] }}…</td>
+                                <td style="font-size:12px;color:#94a3b8">{{ ev.case_ref or '—' }}</td>
+                                <td><span class="badge badge-{{ ev.status }}">{{ ev.status | title }}</span></td>
+                                <td style="color:#64748b;font-size:12px">{{ ev.uploaded_at[:10] }}</td>
+                                <td style="white-space:nowrap">
+                                    <form class="action-form" method="POST"
+                                        action="{{ url_for('admin_verify_evidence', evidence_id=ev.evidence_id) }}">
+                                        <input type="hidden" name="status" value="verified">
+                                        <button type="submit" class="action-btn btn-verify">✓ Verify</button>
+                                    </form>
+                                    <form class="action-form" method="POST"
+                                        action="{{ url_for('admin_verify_evidence', evidence_id=ev.evidence_id) }}">
+                                        <input type="hidden" name="status" value="rejected">
+                                        <button type="submit" class="action-btn btn-reject" style="margin-left:4px">✗
+                                            Reject</button>
+                                    </form>
+                                    <form class="action-form" method="POST"
+                                        action="{{ url_for('admin_verify_evidence', evidence_id=ev.evidence_id) }}">
+                                        <input type="hidden" name="status" value="archived">
+                                        <button type="submit" class="action-btn btn-archive"
+                                            style="margin-left:4px">Archive</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="10">
+                                    <div class="no-data"><i class="fas fa-file-alt"></i>
+                                        <p>No evidence uploaded yet</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Delete Requests Tab -->
+            <div id="tab-deletes" class="tab-panel">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Request #</th>
+                                <th>Evidence ID</th>
+                                <th>User</th>
+                                <th>File</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dr in delete_requests %}
+                            <tr>
+                                <td>#{{ dr.id }}</td>
+                                <td class="ev-id">{{ dr.evidence_id }}</td>
+                                <td style="font-weight:600;color:#f1f5f9">{{ dr.username }}</td>
+                                <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{
+                                    dr.original_name }}</td>
+                                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+                                    title="{{ dr.reason }}">{{ dr.reason }}</td>
+                                <td><span class="badge badge-{{ dr.status }}">{{ dr.status | title }}</span></td>
+                                <td style="color:#64748b;font-size:12px">{{ dr.requested_at[:10] }}</td>
+                                <td>
+                                    {% if dr.status == 'pending' %}
+                                    <form class="action-form" method="POST"
+                                        action="{{ url_for('admin_resolve_delete', req_id=dr.id) }}"
+                                        onsubmit="return confirm('Approve this request and send OTP to user?')">
+                                        <input type="hidden" name="action" value="approve">
+                                        <button type="submit" class="action-btn btn-approve">✓ Approve</button>
+                                    </form>
+                                    <form class="action-form" method="POST"
+                                        action="{{ url_for('admin_resolve_delete', req_id=dr.id) }}"
+                                        style="margin-left:4px">
+                                        <input type="hidden" name="action" value="reject">
+                                        <button type="submit" class="action-btn btn-deny">✗ Reject</button>
+                                    </form>
+                                    {% else %}<span style="color:#475569;font-size:12px">{{ dr.status | title
+                                        }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8">
+                                    <div class="no-data"><i class="fas fa-check-circle" style="color:#22c55e"></i>
+                                        <p>No delete requests</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Audit Logs Tab -->
+            <div id="tab-logs" class="tab-panel">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Target</th>
+                                <th>Details</th>
+                                <th>IP</th>
+                                <th style="text-align:right">
+                                    <form method="POST" action="{{ url_for('admin_clear_logs') }}"
+                                        onsubmit="return confirm('Clear ALL audit logs?');" style="display:inline">
+                                        <button type="submit" class="action-btn btn-reject"
+                                            style="padding:2px 8px;font-size:10px">Clear All</button>
+                                    </form>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in audit_logs %}
+                            <tr>
+                                <td style="color:#64748b;font-size:12px;white-space:nowrap">{{ log.created_at[:16] }}
+                                </td>
+                                <td style="color:#f1f5f9;font-weight:600">{{ log.username or 'System' }}</td>
+                                <td>
+                                    <span class="badge"
+                                        style="font-size:11px;background:rgba(249,115,22,.1);color:#f97316;border:1px solid rgba(249,115,22,.2)">
+                                        {{ log.action }}
+                                    </span>
+                                </td>
+                                <td class="ev-id"
+                                    style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{
+                                    log.target or '—' }}</td>
+                                <td
+                                    style="color:#94a3b8;font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                                    {{ log.details or '—' }}</td>
+                                <td style="color:#475569;font-size:12px;font-family:monospace">{{ log.ip_address or '—'
+                                    }}</td>
+                                <td style="text-align:right">
+                                    <form method="POST" action="{{ url_for('admin_delete_log', log_id=log.id) }}"
+                                        style="display:inline">
+                                        <button type="submit" class="action-btn"
+                                            style="background:none;color:#475569;padding:0" title="Delete Log"><i
+                                                class="fas fa-times"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="no-data"><i class="fas fa-history"></i>
+                                        <p>No audit logs yet</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- OTPs Tab -->
+            <div id="tab-otps" class="tab-panel">
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Email</th>
+                                <th>Purpose</th>
+                                <th>OTP</th>
+                                <th>Expires</th>
+                                <th>Status</th>
+                                <th style="text-align:right">
+                                    <form method="POST" action="{{ url_for('admin_clear_otps') }}"
+                                        onsubmit="return confirm('Clear ALL OTP records?');" style="display:inline">
+                                        <button type="submit" class="action-btn btn-reject"
+                                            style="padding:2px 8px;font-size:10px">Clear All</button>
+                                    </form>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in all_otps %}
+                            <tr>
+                                <td style="color:#f1f5f9;font-weight:600">{{ o.email }}</td>
+                                <td><span class="badge" style="background:rgba(59,130,246,.1);color:#60a5fa">{{
+                                        o.purpose | title }}</span></td>
+                                <td style="font-family:monospace;letter-spacing:1px;color:#f97316">{{ o.otp }}</td>
+                                <td style="font-size:12px;color:#64748b">{{ o.expires_at[11:16] }}</td>
+                                <td>
+                                    {% if o.used %}
+                                    <span class="badge badge-archived">Used</span>
+                                    {% else %}
+                                    <span class="badge badge-verified">Active</span>
+                                    {% endif %}
+                                </td>
+                                <td style="text-align:right">
+                                    <form method="POST" action="{{ url_for('admin_delete_otp', otp_id=o.id) }}"
+                                        style="display:inline">
+                                        <button type="submit" class="action-btn"
+                                            style="background:none;color:#475569;padding:0" title="Delete OTP Record">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6">
+                                    <div class="no-data"><i class="fas fa-key"></i>
+                                        <p>No OTP records found</p>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Approve Delete Modal -->
+    <div class="modal-bg" id="approve-modal">
+        <div class="modal">
+            <h3>🗑️ Approve Delete Request</h3>
+            <p style="color:#94a3b8;font-size:14px;margin-bottom:16px">
+                Approving this will <strong style="color:#ef4444">permanently delete</strong>
+                evidence <span id="modal-ev-id" style="color:#f97316;font-family:monospace"></span>
+                for user <strong id="modal-username" style="color:#f1f5f9"></strong>.
+                This action cannot be undone.
+            </p>
+            <form id="approve-form" method="POST">
+                <input type="hidden" name="action" value="approve">
+                <label style="color:#94a3b8;font-size:13px">Admin Note (optional):</label>
+                <textarea name="note" placeholder="Reason for approval..."></textarea>
+                <div class="modal-actions">
+                    <button type="button" onclick="closeModal()" class="action-btn btn-archive"
+                        style="padding:8px 16px">Cancel</button>
+                    <button type="submit" class="action-btn btn-approve" style="padding:8px 20px">✓ Confirm
+                        Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showTab(name, btn) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const panel = document.getElementById('tab-' + name);
+            if (panel) panel.classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        function showTabFromNav(tabName, linkElement) {
+            // Find the matching button in tab-nav
+            const tabBtn = document.querySelector(`.tab-btn[onclick*="${tabName}"]`);
+            showTab(tabName, tabBtn);
+
+            // Update sidebar active class
+            document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
+            if (linkElement && linkElement.parentElement) {
+                linkElement.parentElement.classList.add('active');
+            }
+        }
+
+        window.onload = function () {
+            const hash = window.location.hash.replace('#', '');
+            if (hash) {
+                const sidebarLink = document.querySelector(`.sidebar-nav a[href="#${hash}"]`);
+                if (sidebarLink) {
+                    showTabFromNav(hash, sidebarLink);
+                }
+            }
+        };
+
+        function openApproveModal(reqId, evId, username) {
+            console.log("Opening approve modal for request:", reqId);
+            document.getElementById('modal-ev-id').textContent = evId;
+            document.getElementById('modal-username').textContent = username;
+            document.getElementById('approve-form').action = `/admin/delete-request/${reqId}`;
+            document.getElementById('approve-modal').classList.add('open');
+        }
+        function closeModal() {
+            document.getElementById('approve-modal').classList.remove('open');
+        }
+        document.getElementById('approve-modal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+    </script>
+
+</body>
+
+</html>

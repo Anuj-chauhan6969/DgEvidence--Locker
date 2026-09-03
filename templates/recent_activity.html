@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Activity - Digital Evidence Locker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('home') }}">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('my_evidence') }}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>My Evidence</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('upload') }}">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('cases') }}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Cases</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="{{ url_for('recent_activity') }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity Log</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1>Recent Activity</h1>
+                    <p>Track all your recent evidence management activities and system events.</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search activities...">
+                    </div>
+                    <div class="user-profile">
+                        <div class="notification-badge">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=007bff&color=fff"
+                            alt="Profile" class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            <section class="activity-timeline">
+                <div class="section-header">
+                    <h2>Activity Timeline</h2>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active">All</button>
+                        <button class="filter-btn">Uploads</button>
+                        <button class="filter-btn">Logins</button>
+                        <button class="filter-btn">Downloads</button>
+                        <button class="filter-btn">Deletions</button>
+                    </div>
+                </div>
+
+                <div class="timeline">
+                    {% set action_icons = {
+                    'UPLOAD': ('fa-upload','upload'),
+                    'LOGIN': ('fa-sign-in-alt','login'),
+                    'LOGOUT': ('fa-sign-out-alt','login'),
+                    'DOWNLOAD': ('fa-download','download'),
+                    'DELETE_REQUEST': ('fa-trash','delete'),
+                    'APPROVE_DELETE': ('fa-check-circle','delete'),
+                    'REJECT_DELETE': ('fa-times-circle','access'),
+                    'UPDATE_PROFILE': ('fa-user-edit','encryption'),
+                    'CHANGE_PASSWORD': ('fa-key','encryption'),
+                    'CREATE_CASE': ('fa-briefcase','upload'),
+                    'VERIFY_EVIDENCE': ('fa-shield-alt','encryption'),
+                    'REGISTER': ('fa-user-plus','login'),
+                    'LOGIN_FAILED': ('fa-exclamation-triangle','delete')
+                    } %}
+                    {% for log in logs %}
+                    <div class="activity-item">
+                        {% set cfg = action_icons.get(log.action, ('fa-info-circle', 'access')) %}
+                        <div class="activity-icon {{ cfg[1] }}">
+                            <i class="fas {{ cfg[0] }}"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h4>
+                                <span style="font-family:monospace;font-size:11px;
+                                background:rgba(249,115,22,.1);color:#f97316;
+                                padding:2px 8px;border-radius:4px;margin-right:8px">{{ log.action }}</span>
+                                {{ log.target or '' }}
+                            </h4>
+                            <p>{{ log.details or '—' }}</p>
+                            <span class="activity-time" style="font-size:12px;color:#475569">
+                                {{ log.created_at[:16] }}
+                                {% if log.ip_address %}
+                                &nbsp;· <span style="font-family:monospace">{{ log.ip_address }}</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div style="text-align:center;padding:60px 20px;color:#475569">
+                        <i class="fas fa-history"
+                            style="font-size:48px;margin-bottom:16px;display:block;color:#334155"></i>
+                        <p>No activity recorded yet.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

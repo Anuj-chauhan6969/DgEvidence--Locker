@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Digital Evidence Locker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active">
+                        <a href="{{ url_for('home') }}">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('my_evidence') }}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>My Evidence</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('upload') }}">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('cases') }}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Cases</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('recent_activity') }}">
+                            <i class="fas fa-history"></i>
+                            <span>Activity Log</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1>Welcome, {{ user.username }}</h1>
+                    <p>Here's what's happening with your evidence locker today.</p>
+                </div>
+                <div class="header-actions">
+                    <form class="search-bar" action="{{ url_for('search') }}" method="GET"
+                        style="display:flex;align-items:center">
+                        <i class="fas fa-search"></i>
+                        <input type="text" name="q" placeholder="Search evidence...">
+                    </form>
+                    <div class="user-profile">
+                        <div class="notification-badge">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">{{ stats.pending_review }}</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=f97316&color=fff"
+                            alt="Profile" class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat,msg in messages %}
+            <div class="alert alert-{{ cat }}"
+                style="padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;{% if cat=='success' %}background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);color:#86efac{% elif cat=='danger' %}background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#fca5a5{% else %}background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd{% endif %}">
+                {{ msg }}
+            </div>
+            {% endfor %}{% endif %}
+            {% endwith %}
+
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-info">
+                        <h3>Total Evidence</h3>
+                        <p class="stat-value">{{ stats.total_evidence }}</p>
+                        <span class="stat-change neutral">Encrypted &amp; Secured</span>
+                    </div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-icon orange"><i class="fas fa-clock"></i></div>
+                    <div class="stat-info">
+                        <h3>Pending Review</h3>
+                        <p class="stat-value">{{ stats.pending_review }}</p>
+                        <span class="stat-change neutral">Awaiting admin</span>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-icon green"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-info">
+                        <h3>My Cases</h3>
+                        <p class="stat-value">{{ stats.total_cases }}</p>
+                        <span class="stat-change neutral"><a href="{{ url_for('cases') }}" style="color:#22c55e">View
+                                all</a></span>
+                    </div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-icon purple"><i class="fas fa-hdd"></i></div>
+                    <div class="stat-info">
+                        <h3>Storage Used</h3>
+                        <p class="stat-value">{{ stats.storage_human }}</p>
+                        <span class="stat-change neutral">Encrypted storage</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="recent-evidence">
+                <div class="section-header">
+                    <h2>Recent Evidence</h2>
+                    <a href="{{ url_for('my_evidence') }}" class="view-all-btn" style="text-decoration:none">View
+                        All</a>
+                </div>
+                <div class="evidence-grid">
+                    {% set icon_map =
+                    {'image':'fa-image','video':'fa-video','audio':'fa-microphone','doc':'fa-file-pdf','text':'fa-file-alt','file':'fa-paperclip'}
+                    %}
+                    {% for ev in recent_evidence %}
+                    <div class="evidence-card">
+                        <div class="evidence-preview {{ ev.file_type }}">
+                            <i class="fas {{ icon_map.get(ev.file_type, 'fa-file') }}"></i>
+                        </div>
+                        <div class="evidence-details">
+                            <h4>{{ ev.case_ref or 'No Case' }}</h4>
+                            <p style="font-size:12px">{{ ev.original_name }}</p>
+                            <span class="evidence-date" style="font-family:monospace;font-size:11px;color:#f97316">{{
+                                ev.evidence_id }}</span><br>
+                            <span class="status-badge {{ 'secure' if ev.status == 'verified' else 'processing' }}">
+                                🔒 {{ ev.status | title }}
+                            </span>
+                        </div>
+                        <a href="{{ url_for('download_evidence', evidence_id=ev.evidence_id) }}" class="action-btn"
+                            title="Download">
+                            <i class="fas fa-download"></i>
+                        </a>
+                    </div>
+                    {% else %}
+                    <div style="grid-column:1/-1;text-align:center;padding:40px;color:#475569">
+                        <i class="fas fa-upload"
+                            style="font-size:36px;margin-bottom:12px;display:block;color:#334155"></i>
+                        <p>No evidence uploaded yet.</p>
+                        <a href="{{ url_for('upload') }}" style="color:#f97316;font-weight:600">Upload your first
+                            evidence →</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

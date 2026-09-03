@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Settings – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 900px
+        }
+
+        @media(max-width:768px) {
+            .settings-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .settings-card {
+            background: rgba(30, 41, 59, .8);
+            border: 1px solid rgba(249, 115, 22, .15);
+            border-radius: 16px;
+            padding: 28px
+        }
+
+        .settings-card h3 {
+            color: #f97316;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .form-group {
+            margin-bottom: 18px
+        }
+
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(71, 85, 105, .3);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, .6);
+            color: #e2e8f0;
+            font-size: 14px;
+            transition: all .2s
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, .1)
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(249, 115, 22, .3)
+        }
+
+        .admin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #ef4444
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+
+    <div class="dashboard-container">
+        <!-- Admin Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+                <div class="admin-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Admin</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+                    <li><a href="{{ url_for('admin_settings') }}"><i class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1>Admin Settings</h1>
+                    <p>Manage system configuration and administrative preferences</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search settings...">
+                    </div>
+                    <div class="user-profile">
+                        <div class="notification-badge">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=ef4444&color=fff"
+                            alt="Profile" class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            <section class="settings-grid">
+                <!-- Profile Settings -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-user"></i> Admin Profile</h3>
+                    <form method="POST" action="{{ url_for('update_profile') }}">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" name="username" class="form-control" value="{{ user_details.username }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" value="{{ user_details.email }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile</label>
+                            <input type="tel" name="mobile" class="form-control" value="{{ user_details.mobile or '' }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Profile</button>
+                    </form>
+                </div>
+
+                <!-- Security Settings -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-shield-alt"></i> Security Settings</h3>
+                    <form method="POST" action="{{ url_for('change_password') }}">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" name="current_password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="new_password" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" name="confirm_password" class="form-control" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Change Password</button>
+                    </form>
+                </div>
+
+                <!-- System Settings -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-server"></i> System Settings</h3>
+                    <div class="form-group">
+                        <label>System Status</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="color: #10b981; font-weight: 600;">● Online</span>
+                            <span style="color: #94a3b8;">All systems operational</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Database Status</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="color: #10b981; font-weight: 600;">● Connected</span>
+                            <span style="color: #94a3b8;">SQLite database active</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Storage Usage</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <span style="color: #f97316; font-weight: 600;">● 78%</span>
+                            <span style="color: #94a3b8;">2.4TB / 3TB used</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-tools"></i> Admin Actions</h3>
+                    <div style="display: flex; flex-direction: column; gap: 12px;">
+                        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-primary" style="text-decoration: none; text-align: center;">
+                            <i class="fas fa-tachometer-alt"></i> Admin Dashboard
+                        </a>
+                        <a href="{{ url_for('admin_dashboard') }}#evidence" class="btn btn-primary" style="text-decoration: none; text-align: center; background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                            <i class="fas fa-folder-open"></i> View Evidence
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert-box {{ 'success' if category == 'success' else 'error' }}" style="margin-top: 20px;">
+                        <i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </main>
+    </div>
+</body>
+
+</html>

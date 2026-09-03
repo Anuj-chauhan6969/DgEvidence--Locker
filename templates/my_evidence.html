@@ -1,0 +1,1895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Evidence - Digital Evidence Locker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* ===== My Evidence Page Styles ===== */
+
+        /* --- Page title --- */
+        .ev-page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #da8600;
+            margin-bottom: 2px;
+        }
+
+        .ev-page-sub {
+            color: #fff;
+            font-size: 13px;
+            opacity: .6;
+        }
+
+        /* --- Toolbar (search + filter + upload btn) --- */
+        .ev-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .ev-search {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            align-items: center;
+            background: #000000a2;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 30px;
+            padding: 9px 18px;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .ev-search input {
+            background: none;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            width: 100%;
+        }
+
+        .ev-search input::placeholder {
+            color: rgba(255, 255, 255, 0.35);
+        }
+
+        /* Filter pills */
+        .filter-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-pill {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filter-pill:hover {
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .filter-pill.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(0, 123, 255, .35);
+        }
+
+        /* Sort + view toggle */
+        .ev-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ev-count {
+            color: rgba(255, 255, 255, .5);
+            font-size: 13px;
+            flex: 1;
+        }
+
+        .sort-select {
+            background: rgba(255, 255, 255, .07);
+            border: 1px solid rgba(255, 255, 255, .14);
+            color: rgba(255, 255, 255, .75);
+            border-radius: 8px;
+            padding: 7px 12px;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .sort-select option {
+            background: #1a1a2e;
+        }
+
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+        }
+
+        .view-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, .15);
+            background: rgba(255, 255, 255, .06);
+            color: rgba(255, 255, 255, .5);
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+        }
+
+        .view-btn.active,
+        .view-btn:hover {
+            background: rgba(0, 123, 255, .2);
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        /* ===== GRID VIEW ===== */
+        .ev-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+            gap: 18px;
+        }
+
+        .ev-grid.hidden {
+            display: none;
+        }
+
+        .ev-card {
+            background: linear-gradient(135deg, #3a3a3a, #0f0f0f);
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 14px;
+            overflow: hidden;
+            transition: transform .25s, box-shadow .25s;
+            cursor: pointer;
+        }
+
+        .ev-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+            border-color: rgba(0, 123, 255, .4);
+        }
+
+        .ev-card-thumb {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+
+        .ev-card-thumb.image-bg {
+            background: linear-gradient(135deg, #ffd93d22, #ffb34722);
+        }
+
+        .ev-card-thumb.video-bg {
+            background: linear-gradient(135deg, #6f42c122, #5a32a322);
+        }
+
+        .ev-card-thumb.audio-bg {
+            background: linear-gradient(135deg, #6dd5ed22, #2193b022);
+        }
+
+        .ev-card-thumb.doc-bg {
+            background: linear-gradient(135deg, #28a74522, #19875422);
+        }
+
+        .ev-card-thumb.text-bg {
+            background: linear-gradient(135deg, #007bff22, #0056b322);
+        }
+
+        .ev-card-thumb.file-bg {
+            background: linear-gradient(135deg, #ff8c0022, #e6730022);
+        }
+
+        .ev-card-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            inset: 0;
+        }
+
+        .ev-card-body {
+            padding: 12px 14px;
+        }
+
+        .ev-card-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .ev-card-meta {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .4);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .ev-card-footer {
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #3a3a3a, #0f0f0f);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ===== LIST VIEW ===== */
+        .ev-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .ev-list.hidden {
+            display: none;
+        }
+
+        .ev-list-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: rgba(255, 255, 255, .06);
+            border: 1px solid rgba(255, 255, 255, .10);
+            border-radius: 12px;
+            padding: 14px 18px;
+            transition: all .2s;
+        }
+
+        .ev-list-row:hover {
+            border-color: rgba(0, 123, 255, .3);
+            background: rgba(0, 123, 255, .06);
+        }
+
+        .ev-list-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .ev-list-icon.image-bg {
+            background: rgba(255, 193, 61, .15);
+        }
+
+        .ev-list-icon.video-bg {
+            background: rgba(111, 66, 193, .15);
+        }
+
+        .ev-list-icon.audio-bg {
+            background: rgba(109, 213, 237, .15);
+        }
+
+        .ev-list-icon.doc-bg {
+            background: rgba(40, 167, 69, .15);
+        }
+
+        .ev-list-icon.text-bg {
+            background: rgba(0, 123, 255, .15);
+        }
+
+        .ev-list-icon.file-bg {
+            background: rgba(255, 140, 0, .15);
+        }
+
+        .ev-list-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .ev-list-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .ev-list-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, .4);
+            margin-top: 2px;
+        }
+
+        .ev-list-meta {
+            display: flex;
+            gap: 24px;
+            flex-shrink: 0;
+        }
+
+        .ev-meta-item {
+            text-align: right;
+        }
+
+        .ev-meta-item .label {
+            font-size: 10px;
+            color: rgba(255, 255, 255, .35);
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .ev-meta-item .value {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .7);
+            font-weight: 500;
+        }
+
+        /* Shared: badges, actions */
+        .type-badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 9px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .type-badge.image {
+            background: rgba(255, 193, 61, .2);
+            color: #ffd93d;
+        }
+
+        .type-badge.video {
+            background: rgba(111, 66, 193, .2);
+            color: #aa85f5;
+        }
+
+        .type-badge.audio {
+            background: rgba(109, 213, 237, .2);
+            color: #6dd5ed;
+        }
+
+        .type-badge.doc {
+            background: rgba(40, 167, 69, .2);
+            color: #82e09e;
+        }
+
+        .type-badge.text {
+            background: rgba(0, 123, 255, .2);
+            color: #6cb4ff;
+        }
+
+        .type-badge.file {
+            background: rgba(255, 140, 0, .2);
+            color: #ffb347;
+        }
+
+        .priority-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .priority-dot.low {
+            background: #28a745;
+        }
+
+        .priority-dot.medium {
+            background: #ffc107;
+        }
+
+        .priority-dot.high {
+            background: #dc3545;
+        }
+
+        /* Action buttons inside card */
+        .ev-action-group {
+            display: flex;
+            gap: 6px;
+        }
+
+        .ev-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, .12);
+            background: rgba(255, 255, 255, .05);
+            color: rgba(255, 255, 255, .55);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all .2s;
+            text-decoration: none;
+        }
+
+        .ev-btn:hover {
+            background: rgba(0, 123, 255, .2);
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .ev-btn.del:hover {
+            background: rgba(220, 53, 69, .2);
+            border-color: #dc3545;
+            color: #f88;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: rgba(255, 255, 255, .4);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+            opacity: .4;
+        }
+
+        .empty-state h3 {
+            color: rgba(255, 255, 255, .6);
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        .btn-upload-now {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all .25s;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, .35);
+        }
+
+        .btn-upload-now:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, .45);
+        }
+
+        /* Flash */
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-box.success {
+            background: rgba(40, 167, 69, .15);
+            border: 1px solid rgba(40, 167, 69, .4);
+            color: #82e09e;
+        }
+
+        .alert-box.error {
+            background: rgba(220, 53, 69, .15);
+            border: 1px solid rgba(220, 53, 69, .4);
+            color: #f08090;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .ev-list-meta {
+                display: none;
+            }
+
+            .ev-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .ev-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== PREVIEW MODAL ===== */
+        .preview-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.92);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            backdrop-filter: blur(6px);
+            animation: fadeInOverlay 0.2s ease;
+        }
+
+        .preview-overlay.open {
+            display: flex;
+        }
+
+        @keyframes fadeInOverlay {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .preview-modal {
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+            animation: slideUp 0.25s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 22px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+        }
+
+        .preview-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 70%;
+        }
+
+        .preview-meta-pill {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .preview-header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .preview-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 7px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .preview-action-btn:hover {
+            background: rgba(0, 123, 255, 0.2);
+            border-color: #007bff;
+            color: #fff;
+        }
+
+        .preview-action-btn.danger:hover {
+            background: rgba(220, 53, 69, 0.2);
+            border-color: #dc3545;
+            color: #f88;
+        }
+
+        .preview-close-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .preview-close-btn:hover {
+            background: rgba(220, 53, 69, 0.3);
+            color: #fff;
+            border-color: #dc3545;
+        }
+
+        /* Metadata Sidebar */
+        .preview-content-wrapper {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .preview-body {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: #111122;
+            min-height: 200px;
+        }
+
+        .preview-metadata-sidebar {
+            width: 300px;
+            background: #1a1a2e;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .metadata-section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.3);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .metadata-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .metadata-label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+        }
+
+        .metadata-value {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.9);
+            word-break: break-word;
+            line-height: 1.4;
+        }
+
+        .metadata-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(0, 123, 255, 0.15);
+            color: #6cb4ff;
+            border-radius: 4px;
+            font-size: 11px;
+            margin: 2px;
+        }
+
+        /* Toast Notification */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 14px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+            animation: toast-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            border-left: 4px solid #da8600;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateY(100px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-out {
+            animation: toast-out 0.4s ease forwards !important;
+        }
+
+        @keyframes toast-out {
+            to {
+                transform: translateY(20px) scale(0.9);
+                opacity: 0;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .preview-metadata-sidebar {
+                display: none;
+                /* Hide on small screens or make it toggleable */
+            }
+        }
+
+        /* Image preview */
+        .preview-body img.preview-img {
+            max-width: 100%;
+            max-height: 65vh;
+            object-fit: contain;
+            border-radius: 8px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Video preview */
+        .preview-body video.preview-video {
+            max-width: 100%;
+            max-height: 65vh;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        /* Audio preview */
+        .audio-preview-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 28px;
+            padding: 30px;
+        }
+
+        .audio-preview-icon {
+            font-size: 72px;
+            animation: audioPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes audioPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.08);
+                opacity: 0.8;
+            }
+        }
+
+        .preview-body audio.preview-audio {
+            width: 100%;
+            max-width: 480px;
+            border-radius: 40px;
+        }
+
+        /* PDF / iframe preview */
+        .preview-body iframe.preview-pdf {
+            width: 100%;
+            height: 65vh;
+            border: none;
+            border-radius: 6px;
+        }
+
+        /* Text note preview */
+        .text-preview-wrap {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 22px 28px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 60vh;
+            overflow-y: auto;
+            font-family: 'Inter', monospace;
+        }
+
+        /* Unsupported */
+        .unsupported-preview {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.45);
+        }
+
+        .unsupported-preview i {
+            font-size: 64px;
+            display: block;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .unsupported-preview p {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Preview footer */
+        .preview-footer {
+            padding: 12px 22px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.35);
+            flex-shrink: 0;
+        }
+
+        .preview-footer span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+
+    <div class="dashboard-container">
+        <!-- ===== Sidebar ===== -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('home') }}">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="{{ url_for('my_evidence') }}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>My Evidence</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('upload') }}">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('cases') }}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Cases</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('recent_activity') }}">
+                            <i class="fas fa-history"></i>
+                            <span>Recent Activity</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content ===== -->
+        <main class="dashboard-main">
+
+            <!-- Header -->
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1 class="ev-page-title">My Evidence</h1>
+                    <p class="ev-page-sub">All your uploaded evidence files, secured and encrypted.</p>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search evidence..." id="globalSearch">
+                    </div>
+                    <div class="user-profile">
+                        <div class="notification-badge">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=007bff&color=fff"
+                            alt="Profile" class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert-box {{ 'success' if category == 'success' else 'error' }}">
+                <i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            {% if evidences %}
+
+            <!-- Toolbar -->
+            <div class="ev-toolbar">
+                <div class="ev-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Filter evidence by name, case, tags…" id="localSearch"
+                        oninput="filterCards()">
+                </div>
+                <a href="{{ url_for('upload') }}" class="btn-upload-now" style="padding:9px 18px; font-size:13px;">
+                    <i class="fas fa-plus"></i> New Upload
+                </a>
+            </div>
+
+            <!-- Filter Pills -->
+            <div class="filter-pills" id="filterPills" style="margin-bottom:18px;">
+                <button class="filter-pill active" data-filter="all" onclick="applyFilter(this,'all')">All ({{
+                    evidences|length }})</button>
+                {% if type_counts.image %}<button class="filter-pill" data-filter="image"
+                    onclick="applyFilter(this,'image')">🖼️ Images ({{ type_counts.image }})</button>{% endif %}
+                {% if type_counts.video %}<button class="filter-pill" data-filter="video"
+                    onclick="applyFilter(this,'video')">🎥 Videos ({{ type_counts.video }})</button>{% endif %}
+                {% if type_counts.audio %}<button class="filter-pill" data-filter="audio"
+                    onclick="applyFilter(this,'audio')">🎙️ Audio ({{ type_counts.audio }})</button>{% endif %}
+                {% if type_counts.doc %}<button class="filter-pill" data-filter="doc"
+                    onclick="applyFilter(this,'doc')">📄 Docs ({{ type_counts.doc }})</button>{% endif %}
+                {% if type_counts.text %}<button class="filter-pill" data-filter="text"
+                    onclick="applyFilter(this,'text')">✏️ Text Notes ({{ type_counts.text }})</button>{% endif %}
+                {% if type_counts.file %}<button class="filter-pill" data-filter="file"
+                    onclick="applyFilter(this,'file')">📎 Other ({{ type_counts.file }})</button>{% endif %}
+            </div>
+
+            <!-- Controls bar -->
+            <div class="ev-controls">
+                <span class="ev-count" id="visibleCount">Showing <strong>{{ evidences|length }}</strong> items</span>
+                <select class="sort-select" onchange="sortCards(this.value)">
+                    <option value="date_desc">Newest First</option>
+                    <option value="date_asc">Oldest First</option>
+                    <option value="name_asc">Name A–Z</option>
+                    <option value="name_desc">Name Z–A</option>
+                    <option value="size_desc">Largest First</option>
+                </select>
+                <div class="view-toggle">
+                    <button class="view-btn active" id="gridBtn" onclick="setView('grid')" title="Grid View"><i
+                            class="fas fa-th-large"></i></button>
+                    <button class="view-btn" id="listBtn" onclick="setView('list')" title="List View"><i
+                            class="fas fa-list"></i></button>
+                </div>
+            </div>
+
+            <!-- ===== GRID VIEW ===== -->
+            <div class="ev-grid" id="evGrid">
+                {% for ev in evidences %}
+                <div class="ev-card" data-type="{{ ev.type }}" data-name="{{ ev.filename|lower }}"
+                    data-case="{{ ev.case_id|lower }}" data-tags="{{ ev.tags|lower }}" data-date="{{ ev.modified_ts }}"
+                    data-size="{{ ev.size_bytes }}" data-nameorig="{{ ev.filename }}">
+                    <!-- Thumb (clickable → preview) -->
+                    <div class="ev-card-thumb {{ ev.type }}-bg" style="cursor:pointer;" data-ev='{{ ev|tojson|safe }}'
+                        onclick='openPreview(this)'>
+                        {% if ev.type == 'image' %}
+                        <img src="{{ url_for('serve_upload', filename=ev.filename) }}" alt="{{ ev.filename }}">
+                        {% else %}
+                        {{ ev.emoji }}
+                        {% endif %}
+                    </div>
+                    <!-- Body -->
+                    <div class="ev-card-body" style="cursor:pointer;" data-ev='{{ ev|tojson|safe }}'
+                        onclick='openPreview(this)'>
+                        <div class="ev-card-name" title="{{ ev.filename }}">{{ ev.title or ev.filename }}</div>
+                        <div class="ev-card-meta">
+                            <span>{{ ev.case_id or '—' }}</span>
+                            <span>{{ ev.size_human }}</span>
+                        </div>
+                    </div>
+                    <!-- Footer -->
+                    <div class="ev-card-footer">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span class="type-badge {{ ev.type }}">{{ ev.type }}</span>
+                            <span class="priority-dot {{ ev.priority }}" title="Priority: {{ ev.priority }}"></span>
+                        </div>
+                        <div class="ev-action-group">
+                            <button class="ev-btn" title="Preview" data-ev='{{ ev|tojson|safe }}'
+                                onclick='openPreview(this)'>
+                                <i class="fas fa-eye"></i></button>
+                            <button class="ev-btn" onclick="showAuthNotification()" title="Download">
+                                <i class="fas fa-download"></i></button>
+                            <a href="#" class="ev-btn del" title="Request Delete"
+                                onclick="openDeleteRequest('{{ ev.evidence_id }}', '{{ ev.title or ev.filename }}')">
+                                <i class="fas fa-trash-alt"></i></a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- ===== LIST VIEW ===== -->
+            <div class="ev-list hidden" id="evList">
+                <!-- Table header -->
+                <div
+                    style="display:flex; align-items:center; gap:14px; padding: 6px 18px; color:rgba(255,255,255,.35); font-size:11px; text-transform:uppercase; letter-spacing:.5px;">
+                    <div style="width:46px; flex-shrink:0;"></div>
+                    <div style="flex:1;">Name / Case</div>
+                    <div style="width:90px; text-align:right;">Type</div>
+                    <div style="width:90px; text-align:right;">Size</div>
+                    <div style="width:130px; text-align:right;">Date Modified</div>
+                    <div style="width:80px; text-align:right;">Priority</div>
+                    <div style="width:70px; text-align:right;">Actions</div>
+                </div>
+
+                {% for ev in evidences %}
+                <div class="ev-list-row" data-type="{{ ev.type }}" data-name="{{ ev.filename|lower }}"
+                    data-case="{{ ev.case_id|lower }}" data-tags="{{ ev.tags|lower }}" data-date="{{ ev.modified_ts }}"
+                    data-size="{{ ev.size_bytes }}" data-nameorig="{{ ev.filename }}">
+                    <!-- Icon -->
+                    <div class="ev-list-icon {{ ev.type }}-bg">{{ ev.emoji }}</div>
+                    <!-- Info -->
+                    <div class="ev-list-info">
+                        <div class="ev-list-name" title="{{ ev.filename }}">{{ ev.title or ev.filename }}</div>
+                        <div class="ev-list-sub">
+                            {% if ev.case_id %}Case: {{ ev.case_id }} &nbsp;·&nbsp;{% endif %}
+                            {{ ev.description[:60] + '…' if ev.description and ev.description|length > 60 else
+                            ev.description or '' }}
+                        </div>
+                    </div>
+                    <!-- Meta -->
+                    <div class="ev-list-meta">
+                        <div class="ev-meta-item">
+                            <div class="label">Type</div>
+                            <div class="value"><span class="type-badge {{ ev.type }}">{{ ev.type }}</span></div>
+                        </div>
+                        <div class="ev-meta-item">
+                            <div class="label">Size</div>
+                            <div class="value">{{ ev.size_human }}</div>
+                        </div>
+                        <div class="ev-meta-item">
+                            <div class="label">Date</div>
+                            <div class="value">{{ ev.modified_date }}</div>
+                        </div>
+                        <div class="ev-meta-item">
+                            <div class="label">Priority</div>
+                            <div class="value"
+                                style="display:flex;align-items:center;gap:5px;justify-content:flex-end;">
+                                <span class="priority-dot {{ ev.priority }}"></span>
+                                {{ ev.priority|capitalize }}
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Actions -->
+                    <div class="ev-action-group" style="flex-shrink:0;">
+                        <button class="ev-btn" title="Preview" data-ev='{{ ev|tojson|safe }}'
+                            onclick='openPreview(this)'>
+                            <i class="fas fa-eye"></i></button>
+                        <button class="ev-btn" onclick="showAuthNotification()" title="Download">
+                            <i class="fas fa-download"></i></button>
+                        <a href="#" class="ev-btn del" title="Request Delete"
+                            onclick="openDeleteRequest('{{ ev.evidence_id }}', '{{ ev.title or ev.filename }}')">
+                            <i class="fas fa-trash-alt"></i></a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>No Evidence Uploaded Yet</h3>
+                <p>Start uploading images, videos, audio, documents, or text notes to secure your evidence.</p>
+                <a href="{{ url_for('upload') }}" class="btn-upload-now">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload Evidence Now
+                </a>
+            </div>
+            {% endif %}
+
+        </main>
+    </div><!-- /.dashboard-container -->
+
+    <!-- ===== PREVIEW MODAL ===== -->
+    <div class="preview-overlay" id="previewOverlay" onclick="handleOverlayClick(event)">
+        <div class="preview-modal" id="previewModal">
+            <!-- Header -->
+            <div class="preview-header">
+                <div style="display:flex; align-items:center; min-width:0;">
+                    <div class="preview-title" id="previewTitle">Evidence Preview</div>
+                    <span class="preview-meta-pill type-badge" id="previewTypeBadge"></span>
+                </div>
+                <div class="preview-header-actions">
+                    <a id="previewDownloadBtn" href="#" download class="preview-action-btn">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                    <a id="previewDeleteBtn" href="#" class="preview-action-btn danger"
+                        onclick="return confirm('Delete this evidence? This cannot be undone.');">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                    <button class="preview-close-btn" onclick="closePreview()" title="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="preview-content-wrapper">
+                <!-- Body -->
+                <div class="preview-body" id="previewBody">
+                    <div style="color:rgba(255,255,255,.3);"><i class="fas fa-spinner fa-spin"
+                            style="font-size:32px;"></i>
+                    </div>
+                </div>
+
+                <!-- Metadata Sidebar -->
+                <aside class="preview-metadata-sidebar" id="previewSidebar">
+                    <div>
+                        <div class="metadata-section-title">Evidence Details</div>
+                        <div class="metadata-item">
+                            <label class="metadata-label">Evidence ID</label>
+                            <div class="metadata-value" id="metaId">—</div>
+                        </div>
+                        <div class="metadata-item" style="margin-top:12px;">
+                            <label class="metadata-label">Case Reference</label>
+                            <div class="metadata-value" id="metaCase">—</div>
+                        </div>
+                        <div class="metadata-item" style="margin-top:12px;">
+                            <label class="metadata-label">Category</label>
+                            <div class="metadata-value" id="metaCategory">—</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="metadata-section-title">Description</div>
+                        <div class="metadata-value" id="metaDesc" style="font-size:12px; opacity:0.8;">No description
+                            provided.</div>
+                    </div>
+
+                    <div>
+                        <div class="metadata-section-title">Collection Info</div>
+                        <div class="metadata-item">
+                            <label class="metadata-label">Collected At</label>
+                            <div class="metadata-value" id="metaCollected">—</div>
+                        </div>
+                        <div class="metadata-item" style="margin-top:12px;">
+                            <label class="metadata-label">Location</label>
+                            <div class="metadata-value" id="metaLocation">—</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="metadata-section-title">Tags</div>
+                        <div id="metaTags" style="display:flex; flex-wrap:wrap; gap:4px;">
+                            <span class="metadata-tag">None</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== UNLOCK MODAL (Two-Step Verification) ===== -->
+    <div id="unlockModal" class="preview-overlay"
+        style="display: none; z-index: 2000; align-items: center; justify-content: center; background: rgba(0,0,0,0.85);">
+        <div class="preview-modal" style="max-width: 420px; height: auto; min-height: 320px; transform: scale(0.95);">
+            <div class="preview-header">
+                <div class="preview-title"><i class="fas fa-lock"></i> Evidence Security</div>
+                <button class="preview-close-btn" onclick="closeUnlockModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="preview-body" style="padding: 32px; flex: 1; display: block;">
+
+                <!-- Step 1: Security Question -->
+                <div id="unlockStep1">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div
+                            style="width: 64px; height: 64px; background: rgba(0,123,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <i class="fas fa-shield-alt" style="font-size: 32px; color: #00d4ff;"></i>
+                        </div>
+                        <h4 style="color: #fff; margin-bottom: 4px;">Security Verification</h4>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 13px;">Step 1 of 2: Security Question</p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label
+                            style="color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your
+                            Question:</label>
+                        <p id="displayQuestion"
+                            style="color: #fff; font-weight: 500; font-size: 15px; background: rgba(255,255,255,0.04); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.06);">
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label
+                            style="color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Your
+                            Answer:</label>
+                        <input type="text" id="secAnswerInput" class="form-control" placeholder="Enter answer..."
+                            autocomplete="off" style="background: rgba(255,255,255,0.05);">
+                    </div>
+
+                    <button class="btn-upload-now" onclick="verifyAnswerStep()"
+                        style="width: 100%; margin-top: 24px; padding: 12px; justify-content: center;">
+                        Continue <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+
+                <!-- Step 2: Password -->
+                <div id="unlockStep2" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <div
+                            style="width: 64px; height: 64px; background: rgba(40,167,69,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                            <i class="fas fa-key" style="font-size: 32px; color: #28a745;"></i>
+                        </div>
+                        <h4 style="color: #fff; margin-bottom: 4px;">Enter Password</h4>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 13px;">Step 2 of 2: Decryption Key</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label
+                            style="color: rgba(255,255,255,0.4); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 8px;">Encryption
+                            Password:</label>
+                        <div style="position: relative;">
+                            <input type="password" id="unlockPassInput" class="form-control" placeholder="••••••••"
+                                style="background: rgba(255,255,255,0.05);">
+                            <i class="fas fa-eye" id="toggleUnlockPass"
+                                style="position: absolute; right: 12px; top: 12px; cursor: pointer; color: rgba(255,255,255,0.3);"></i>
+                        </div>
+                    </div>
+
+                    <button class="btn-upload-now" onclick="verifyPasswordStep()"
+                        style="width: 100%; margin-top: 24px; padding: 12px; justify-content: center; background: linear-gradient(135deg, #28a745, #1e7e34);">
+                        Unlock File <i class="fas fa-unlock"></i>
+                    </button>
+                </div>
+
+                <!-- Locked State -->
+                <div id="unlockLocked" style="display: none; text-align: center; padding: 10px 0;">
+                    <div
+                        style="width: 72px; height: 72px; background: rgba(220,53,69,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <i class="fas fa-user-lock" style="font-size: 36px; color: #dc3545;"></i>
+                    </div>
+                    <h4 style="color: #dc3545; margin-bottom: 8px;">Access Suspended</h4>
+                    <p id="lockoutMsg" style="color: rgba(255,255,255,0.6); font-size: 13px; line-height: 1.5;"></p>
+
+                    <div
+                        style="margin-top: 24px; padding: 16px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(220,53,69,0.2);">
+                        <div
+                            style="font-size: 10px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">
+                            Available in:</div>
+                        <div id="countdownTimer"
+                            style="font-size: 28px; font-weight: 700; color: #fff; font-family: 'Courier New', monospace;">
+                            00:00:00</div>
+                    </div>
+                </div>
+
+                <!-- Error Toast (Inline) -->
+                <div id="unlockError"
+                    style="margin-top: 16px; padding: 10px; background: rgba(220,53,69,0.1); border: 1px solid rgba(220,53,69,0.2); border-radius: 6px; color: #f08090; font-size: 12px; text-align: center; display: none;">
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- Footer -->
+    <div class="preview-footer" id="previewFooter">
+        <span><i class="fas fa-weight-hanging"></i> <span id="pfSize"></span></span>
+        <span><i class="fas fa-calendar"></i> <span id="pfDate"></span></span>
+        <span><i class="fas fa-folder"></i> Case: <span id="pfCase"></span></span>
+        <span style="margin-left:auto;"><i class="fas fa-keyboard" style="opacity:.4;"></i>&nbsp;
+            Press <kbd
+                style="background:rgba(255,255,255,.1);padding:2px 6px;border-radius:4px;font-size:11px;">Esc</kbd>
+            to close
+        </span>
+    </div>
+    </div>
+    </div>
+
+    <script>
+        /* ===== Preview Modal ===== */
+        let currentPreviewFile = null;
+
+        function showAuthNotification() {
+            const container = document.getElementById('toastContainer') || (() => {
+                const c = document.createElement('div');
+                c.id = 'toastContainer';
+                c.className = 'toast-container';
+                document.body.appendChild(c);
+                return c;
+            })();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-msg';
+            toast.innerHTML = `<i class="fas fa-shield-halved" style="color:#da8600;"></i> Verification required. Click Preview to verify yourself.`;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('toast-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        function openPreview(el) {
+            const evData = JSON.parse(el.getAttribute('data-ev'));
+            const evidenceId = evData.evidence_id;
+            currentPreviewFile = evidenceId;
+
+            // First check if evidence is locked and requires authentication
+            fetch(`/evidence/check-lock/${evidenceId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.is_locked) {
+                        showAuthenticationModal(evData);
+                    } else if (data.question) {
+                        showSecurityQuestionModal(evData, data.question);
+                    } else {
+                        showPreviewContent(evData);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking lock status:', error);
+                    showAuthenticationModal(evData);
+                });
+        }
+
+        function showAuthenticationModal(evData) {
+            const modal = document.createElement('div');
+            modal.className = 'auth-modal-overlay';
+            const title = evData.title || evData.original_name || evData.evidence_id;
+
+            modal.innerHTML = `
+                <div class="auth-modal">
+                    <div class="auth-modal-header">
+                        <h3 class="auth-modal-title">
+                            <div class="auth-modal-icon lock">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            Evidence Authentication Required
+                        </h3>
+                        <button class="auth-modal-close" onclick="this.closest('.auth-modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="auth-modal-body">
+                        <div class="auth-evidence-info">
+                            <div class="auth-evidence-label">Evidence File</div>
+                            <div class="auth-evidence-name">${title}</div>
+                        </div>
+                        <div class="auth-form-group">
+                            <label class="auth-form-label">Enter Password</label>
+                            <input type="password" id="authPassword" class="auth-form-input" autocomplete="new-password"
+                                placeholder="Enter evidence password">
+                        </div>
+                        <div id="authError" class="auth-error" style="display: none;">
+                            <i class="fas fa-exclamation-triangle auth-error-icon"></i>
+                            <span class="auth-error-text"></span>
+                        </div>
+                    </div>
+                    <div class="auth-modal-footer">
+                        <button class="auth-btn auth-btn-secondary" onclick="this.closest('.auth-modal-overlay').remove()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="auth-btn auth-btn-primary" id="authSubmitBtn">
+                            <i class="fas fa-key"></i> Authenticate & Preview
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const pwdInput = document.getElementById('authPassword');
+            const submitBtn = document.getElementById('authSubmitBtn');
+
+            submitBtn.onclick = () => authenticateEvidence(evData);
+            pwdInput.onkeypress = (e) => { if (e.key === 'Enter') authenticateEvidence(evData); };
+
+            setTimeout(() => pwdInput.focus(), 100);
+
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function showSecurityQuestionModal(evData, question) {
+            const modal = document.createElement('div');
+            modal.className = 'auth-modal-overlay';
+            const title = evData.title || evData.original_name || evData.evidence_id;
+
+            modal.innerHTML = `
+                <div class="auth-modal">
+                    <div class="auth-modal-header">
+                        <h3 class="auth-modal-title">
+                            <div class="auth-modal-icon security">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            Security Question Verification
+                        </h3>
+                        <button class="auth-modal-close" onclick="this.closest('.auth-modal-overlay').remove()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="auth-modal-body">
+                        <div class="auth-evidence-info">
+                            <div class="auth-evidence-label">Evidence File</div>
+                            <div class="auth-evidence-name">${title}</div>
+                        </div>
+                        <div class="auth-security-question">
+                            <div class="auth-security-question-text">${question}</div>
+                        </div>
+                        <div class="auth-form-group">
+                            <label class="auth-form-label">Your Answer</label>
+                            <input type="text" id="securityAnswer" class="auth-form-input" autocomplete="off"
+                                placeholder="Enter your answer">
+                        </div>
+                        <div id="securityError" class="auth-error" style="display: none;">
+                            <i class="fas fa-exclamation-triangle auth-error-icon"></i>
+                            <span class="auth-error-text"></span>
+                        </div>
+                    </div>
+                    <div class="auth-modal-footer">
+                        <button class="auth-btn auth-btn-secondary" onclick="this.closest('.auth-modal-overlay').remove()">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="auth-btn auth-btn-primary" id="securitySubmitBtn">
+                            <i class="fas fa-check"></i> Verify Answer
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            const ansInput = document.getElementById('securityAnswer');
+            const submitBtn = document.getElementById('securitySubmitBtn');
+
+            submitBtn.onclick = () => verifySecurityAnswer(evData);
+            ansInput.onkeypress = (e) => { if (e.key === 'Enter') verifySecurityAnswer(evData); };
+
+            setTimeout(() => ansInput.focus(), 100);
+
+            const escapeHandler = (e) => {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', escapeHandler);
+                }
+            };
+            document.addEventListener('keydown', escapeHandler);
+        }
+
+        function authenticateEvidence(evData) {
+            const evidenceId = evData.evidence_id;
+            const password = document.getElementById('authPassword').value.trim();
+            const errorDiv = document.getElementById('authError');
+            const errorText = errorDiv.querySelector('.auth-error-text');
+
+            if (!password) {
+                errorText.textContent = 'Password is required.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const submitBtn = document.querySelector('.auth-btn-primary');
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="auth-loading"></span> Authenticating...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('evidence_id', evidenceId);
+            formData.append('password', password);
+
+            fetch('/evidence/verify-password', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector('.auth-modal-overlay').remove();
+                        showPreviewContent(evData);
+                    } else {
+                        errorText.textContent = data.message || 'Authentication failed.';
+                        errorDiv.style.display = 'block';
+                        submitBtn.innerHTML = originalContent;
+                        submitBtn.disabled = false;
+                        errorDiv.style.animation = 'shake 0.5s ease-in-out';
+                        setTimeout(() => { errorDiv.style.animation = ''; }, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Authentication error:', error);
+                    errorText.textContent = 'Authentication failed. Please try again.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.innerHTML = originalContent;
+                    submitBtn.disabled = false;
+                });
+        }
+
+        function verifySecurityAnswer(evData) {
+            const evidenceId = evData.evidence_id;
+            const answer = document.getElementById('securityAnswer').value.trim();
+            const errorDiv = document.getElementById('securityError');
+            const errorText = errorDiv.querySelector('.auth-error-text');
+
+            if (!answer) {
+                errorText.textContent = 'Answer is required.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            const submitBtn = document.querySelector('.auth-btn-primary');
+            const originalContent = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="auth-loading"></span> Verifying...';
+            submitBtn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('evidence_id', evidenceId);
+            formData.append('answer', answer);
+
+            fetch('/evidence/verify-answer', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.querySelector('.auth-modal-overlay').remove();
+                        showAuthenticationModal(evData);
+                    } else {
+                        errorText.textContent = data.message || 'Incorrect answer.';
+                        errorDiv.style.display = 'block';
+                        submitBtn.innerHTML = originalContent;
+                        submitBtn.disabled = false;
+                        errorDiv.style.animation = 'shake 0.5s ease-in-out';
+                        setTimeout(() => { errorDiv.style.animation = ''; }, 500);
+                    }
+                })
+                .catch(error => {
+                    console.error('Security answer verification error:', error);
+                    errorText.textContent = 'Verification failed. Please try again.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.innerHTML = originalContent;
+                    submitBtn.disabled = false;
+                });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showPreviewContent(evData) {
+            const evidenceId = evData.evidence_id;
+            const type = evData.type;
+            const title = evData.title || evData.original_name || evidenceId;
+            const size = evData.size_human;
+            const date = evData.modified_date;
+            const caseId = evData.case_id;
+            const description = evData.description;
+            const category = evData.category;
+            const location = evData.location;
+            const collectedAt = evData.collected_at;
+            const tags = evData.tags;
+
+            const body = document.getElementById('previewBody');
+
+            // Header info
+            document.getElementById('previewTitle').textContent = title;
+            const badge = document.getElementById('previewTypeBadge');
+            badge.textContent = type;
+            badge.className = 'preview-meta-pill type-badge ' + type;
+
+            // Sidebar details
+            document.getElementById('metaId').textContent = evidenceId;
+            document.getElementById('metaCase').textContent = caseId || 'Not assigned';
+            document.getElementById('metaCategory').textContent = category || 'General';
+            document.getElementById('metaDesc').textContent = description || 'No description provided.';
+            document.getElementById('metaCollected').textContent = collectedAt || 'Unknown';
+            document.getElementById('metaLocation').textContent = location || 'Not specified';
+
+            // Tags
+            const tagContainer = document.getElementById('metaTags');
+            tagContainer.innerHTML = '';
+            if (tags && tags.trim()) {
+                tags.split(',').forEach(tag => {
+                    const span = document.createElement('span');
+                    span.className = 'metadata-tag';
+                    span.textContent = tag.trim();
+                    tagContainer.appendChild(span);
+                });
+            } else {
+                tagContainer.innerHTML = '<span style="color:rgba(255,255,255,0.2); font-size:11px;">None</span>';
+            }
+
+            // Action buttons
+            const previewUrl = '/evidence/preview/' + encodeURIComponent(evidenceId);
+            const downloadUrl = '/evidence/download/' + encodeURIComponent(evidenceId);
+            document.getElementById('previewDownloadBtn').href = downloadUrl;
+            document.getElementById('previewDeleteBtn').onclick = () => { closePreview(); openDeleteRequest(evidenceId, title); };
+
+            // Build content
+            body.innerHTML = '';
+            body.style.display = 'flex';
+            body.style.alignItems = 'center';
+            body.style.justifyContent = 'center';
+            body.style.padding = '0';
+
+            if (type === 'image') {
+                const img = document.createElement('img');
+                img.src = previewUrl;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                img.style.borderRadius = '8px';
+                img.style.objectFit = 'contain';
+                body.appendChild(img);
+            } else if (type === 'video') {
+                const vid = document.createElement('video');
+                vid.src = previewUrl;
+                vid.controls = true;
+                vid.autoplay = true;
+                vid.style.maxWidth = '100%';
+                vid.style.maxHeight = '100%';
+                vid.style.borderRadius = '8px';
+                body.appendChild(vid);
+            } else if (type === 'audio') {
+                const aud = document.createElement('audio');
+                aud.src = previewUrl;
+                aud.controls = true;
+                aud.autoplay = true;
+                aud.style.width = '80%';
+                body.appendChild(aud);
+            } else if (type === 'text') {
+                body.innerHTML = '<div style="color:rgba(255,255,255,0.5); display:flex; flex-direction:column; align-items:center; gap:12px;"><div class="preview-spinner"></div><p>Loading encrypted text...</p></div>';
+                fetch(previewUrl)
+                    .then(response => response.text())
+                    .then(text => {
+                        body.style.alignItems = 'flex-start';
+                        body.style.justifyContent = 'flex-start';
+                        body.style.padding = '24px';
+                        body.innerHTML = `<pre style="white-space:pre-wrap; font-family:var(--font-mono); font-size:13px; color:#e0e0e0; width:100%; line-height:1.6; margin:0;">${escapeHtml(text)}</pre>`;
+                    })
+                    .catch(err => {
+                        body.innerHTML = `<div style="text-align:center; color:#ff4d4d;"><i class="fas fa-exclamation-circle fa-2x"></i><p style="margin-top:12px;">Failed to load text content.</p></div>`;
+                    });
+            } else if (type === 'pdf' || type === 'doc') {
+                const iframe = document.createElement('iframe');
+                iframe.src = previewUrl;
+                iframe.style.width = '100%';
+                iframe.style.height = '100%';
+                iframe.style.border = 'none';
+                iframe.style.background = '#fff';
+                iframe.style.borderRadius = '8px';
+                body.appendChild(iframe);
+            } else {
+                const msg = document.createElement('div');
+                msg.style.color = '#ccc';
+                msg.style.textAlign = 'center';
+                msg.innerHTML = `<i class="fas fa-file-download fa-3x" style="color:var(--accent); margin-bottom:12px;"></i><br>No inline preview available.<br><a href="${downloadUrl}" style="color:var(--accent);">Download File</a>`;
+                body.appendChild(msg);
+            }
+
+            const overlayEl = document.getElementById('previewOverlay');
+            overlayEl.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openDeleteRequest(evidenceId, title) {
+            const reason = prompt(`Reason for deleting "${title}"? (Required for admin approval)`);
+            if (reason) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/evidence/request-delete';
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden'; idInput.name = 'evidence_id'; idInput.value = evidenceId;
+                form.appendChild(idInput);
+
+                const reasonInput = document.createElement('input');
+                reasonInput.type = 'hidden'; reasonInput.name = 'reason'; reasonInput.value = reason;
+                form.appendChild(reasonInput);
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function closePreview() {
+            const overlay = document.getElementById('previewOverlay');
+            overlay.classList.remove('open');
+            document.body.style.overflow = '';
+            // Stop any media
+            const vid = overlay.querySelector('video');
+            const aud = overlay.querySelector('audio');
+            if (vid) { vid.pause(); vid.src = ''; }
+            if (aud) { aud.pause(); aud.src = ''; }
+            // Reset PDF iframe
+            const iframe = overlay.querySelector('iframe');
+            if (iframe) iframe.src = '';
+            document.getElementById('previewBody').style.alignItems = 'center';
+            document.getElementById('previewBody').style.padding = '24px';
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('previewOverlay')) closePreview();
+        }
+
+        // ESC key closes modal
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+
+        /* ===== Filter / Sort / View (existing) ===== */
+        let activeFilter = 'all';
+
+        // ===== Filter pills =====
+        function applyFilter(btn, type) {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = type;
+            filterCards();
+        }
+
+        // ===== Search + filter combined =====
+        function filterCards() {
+            const q = (document.getElementById('localSearch')?.value || '').toLowerCase();
+            let visible = 0;
+
+            ['ev-grid', 'ev-list'].forEach(viewId => {
+                const container = document.getElementById(viewId);
+                if (!container) return;
+                container.querySelectorAll('[data-type]').forEach(card => {
+                    const typeMatch = activeFilter === 'all' || card.dataset.type === activeFilter;
+                    const textMatch = !q ||
+                        card.dataset.name.includes(q) ||
+                        card.dataset.case.includes(q) ||
+                        card.dataset.tags.includes(q);
+                    const show = typeMatch && textMatch;
+                    card.style.display = show ? '' : 'none';
+                    if (viewId === 'ev-grid' && show) visible++;
+                });
+            });
+
+            const vc = document.getElementById('visibleCount');
+            if (vc) vc.innerHTML = `Showing <strong>${visible}</strong> items`;
+        }
+
+        // ===== Header search =====
+        document.getElementById('globalSearch').addEventListener('input', function () {
+            const local = document.getElementById('localSearch');
+            if (local) { local.value = this.value; filterCards(); }
+        });
+
+        // ===== View toggle =====
+        function setView(view) {
+            const grid = document.getElementById('evGrid');
+            const list = document.getElementById('evList');
+            if (!grid || !list) return;
+            if (view === 'grid') {
+                grid.classList.remove('hidden');
+                list.classList.add('hidden');
+                document.getElementById('gridBtn').classList.add('active');
+                document.getElementById('listBtn').classList.remove('active');
+            } else {
+                list.classList.remove('hidden');
+                grid.classList.add('hidden');
+                document.getElementById('listBtn').classList.add('active');
+                document.getElementById('gridBtn').classList.remove('active');
+            }
+        }
+
+        // ===== Sort =====
+        function sortCards(method) {
+            ['evGrid', 'evList'].forEach(viewId => {
+                const container = document.getElementById(viewId);
+                if (!container) return;
+                const items = Array.from(container.querySelectorAll('[data-type]'));
+                items.sort((a, b) => {
+                    if (method === 'date_desc') return b.dataset.date - a.dataset.date;
+                    if (method === 'date_asc') return a.dataset.date - b.dataset.date;
+                    if (method === 'name_asc') return a.dataset.nameorig.localeCompare(b.dataset.nameorig);
+                    if (method === 'name_desc') return b.dataset.nameorig.localeCompare(a.dataset.nameorig);
+                    if (method === 'size_desc') return b.dataset.size - a.dataset.size;
+                    return 0;
+                });
+                items.forEach(item => container.appendChild(item));
+            });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-image: url("/static/assets/3d-data-technology-background-with-low-poly-plexus-design.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Backdrop Blur Overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            z-index: 0;
+        }
+
+        .card {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 55, 72, 0.95) 50%, rgba(26, 26, 46, 0.95) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 48px 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, .5);
+            backdrop-filter: blur(10px);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .logo-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 30px;
+            box-shadow: 0 0 30px rgba(249, 115, 22, .4)
+        }
+
+        h2 {
+            color: #f1f5f9;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 6px
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 32px
+        }
+
+        .form-group {
+            margin-bottom: 18px
+        }
+
+        .form-group label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px
+        }
+
+        .input-wrap {
+            position: relative
+        }
+
+        .input-wrap .icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px
+        }
+
+        .input-wrap input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
+            font-family: 'Inter', sans-serif
+        }
+
+        .input-wrap input:focus {
+            border-color: #fb923c;
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 0 3px rgba(251, 146, 60, 0.2)
+        }
+
+        .input-wrap .toggle-pw {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #475569;
+            cursor: pointer;
+            font-size: 14px;
+            background: none;
+            border: none
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, .3);
+            margin-top: 8px
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(249, 115, 22, .4)
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #fca5a5
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, .15);
+            border: 1px solid rgba(34, 197, 94, .3);
+            color: #86efac
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, .15);
+            border: 1px solid rgba(59, 130, 246, .3);
+            color: #93c5fd
+        }
+
+        .alert-warning {
+            background: rgba(251, 191, 36, .15);
+            border: 1px solid rgba(251, 191, 36, .3);
+            color: #fde68a
+        }
+
+        .links {
+            text-align: center;
+            margin-top: 20px
+        }
+
+        .links a {
+            color: #f97316;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500
+        }
+
+        .links a:hover {
+            text-decoration: underline
+        }
+
+        .links span {
+            color: #334155;
+            margin: 0 8px
+        }
+
+        .two-fa-note {
+            background: rgba(249, 115, 22, .08);
+            border: 1px solid rgba(249, 115, 22, .2);
+            border-radius: 10px;
+            padding: 14px;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center
+        }
+
+        .two-fa-note i {
+            color: #f97316;
+            margin-right: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="logo-icon">🔐</div>
+        <h2>Welcome Back</h2>
+        <p class="subtitle">Sign in to Digital Evidence Locker</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for cat,msg in messages %}
+        <div class="alert alert-{{ cat }}"><i class="fas fa-info-circle"></i>{{ msg }}</div>
+        {% endfor %}{% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('auth_login') }}">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-wrap">
+                    <i class="fas fa-envelope icon"></i>
+                    <input type="email" id="email" name="email" required placeholder="you@gmail.com">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrap">
+                    <i class="fas fa-lock icon"></i>
+                    <input type="password" id="password" name="password" required placeholder="Your password">
+                    <button type="button" class="toggle-pw" onclick="togglePw()">
+                        <i class="fas fa-eye" id="pw-eye"></i>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+            </button>
+        </form>
+
+        <div class="two-fa-note">
+            <i class="fas fa-shield-alt"></i>
+            After entering your password, a <strong>6-digit OTP</strong> will be sent to your email for 2-Factor
+            Authentication.
+        </div>
+
+        <div class="links">
+            <a href="{{ url_for('register') }}">Don't have an account? Register</a>
+            <span>·</span>
+            <a href="{{ url_for('index') }}">Back to Home</a>
+        </div>
+    </div>
+    <script>
+        function togglePw() {
+            const inp = document.getElementById('password');
+            const eye = document.getElementById('pw-eye');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                eye.className = 'fas fa-eye-slash';
+            } else {
+                inp.type = 'password';
+                eye.className = 'fas fa-eye';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings – Digital Evidence Locker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 900px
+        }
+
+        @media(max-width:768px) {
+            .settings-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .settings-card {
+            background: rgba(30, 41, 59, .8);
+            border: 1px solid rgba(249, 115, 22, .15);
+            border-radius: 16px;
+            padding: 28px
+        }
+
+        .settings-card h3 {
+            color: #f97316;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .form-group {
+            margin-bottom: 18px
+        }
+
+        .form-group label {
+            display: block;
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            background: rgba(15, 23, 42, .7);
+            border: 1px solid rgba(71, 85, 105, .5);
+            border-radius: 10px;
+            color: #f1f5f9;
+            font-size: 14px;
+            outline: none;
+            transition: border .2s;
+            font-family: 'Inter', sans-serif
+        }
+
+        .form-group input:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, .15)
+        }
+
+        .form-group input[readonly] {
+            color: #64748b;
+            cursor: not-allowed;
+            background: rgba(15, 23, 42, .4)
+        }
+
+        .btn-save {
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+            font-size: 14px
+        }
+
+        .btn-save:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(249, 115, 22, .3)
+        }
+
+        .del-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px
+        }
+
+        .del-table th {
+            color: #64748b;
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(71, 85, 105, .3)
+        }
+
+        .del-table td {
+            color: #cbd5e1;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(30, 41, 59, .8)
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600
+        }
+
+        .badge-pending {
+            background: rgba(251, 191, 36, .15);
+            color: #fbbf24;
+            border: 1px solid rgba(251, 191, 36, .3)
+        }
+
+        .badge-approved {
+            background: rgba(34, 197, 94, .15);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, .3)
+        }
+
+        .badge-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, .3)
+        }
+
+        .section-title {
+            color: #f97316;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, .15);
+            border: 1px solid rgba(34, 197, 94, .3);
+            color: #86efac
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid rgba(239, 68, 68, .3);
+            color: #fca5a5
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, .15);
+            border: 1px solid rgba(59, 130, 246, .3);
+            color: #93c5fd
+        }
+
+        .alert-warning {
+            background: rgba(251, 191, 36, .15);
+            border: 1px solid rgba(251, 191, 36, .3);
+            color: #fde68a
+        }
+
+        .account-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(249, 115, 22, .15);
+            border: 1px solid rgba(249, 115, 22, .3);
+            color: #f97316
+        }
+
+        .full-width {
+            grid-column: 1/-1
+        }
+
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            transition: all .3s;
+            background: #1e293b
+        }
+
+        .strength-bar .fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: all .3s
+        }
+
+        .strength-label {
+            font-size: 11px;
+            margin-top: 4px
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="{{ url_for('home') }}"><i class="fas fa-th-large"></i><span>Dashboard</span></a></li>
+                    <li><a href="{{ url_for('my_evidence') }}"><i class="fas fa-folder-open"></i><span>My
+                                Evidence</span></a></li>
+                    <li><a href="{{ url_for('upload') }}"><i class="fas fa-file-upload"></i><span>Upload</span></a></li>
+                    <li><a href="{{ url_for('cases') }}"><i class="fas fa-briefcase"></i><span>Cases</span></a></li>
+                    <li><a href="{{ url_for('recent_activity') }}"><i class="fas fa-history"></i><span>Activity
+                                Log</span></a></li>
+                    <li class="active"><a href="{{ url_for('settings') }}"><i
+                                class="fas fa-cog"></i><span>Settings</span></a></li>
+                </ul>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1><i class="fas fa-cog" style="color:#f97316;margin-right:10px"></i>Settings</h1>
+                    <p>Manage your account preferences and security</p>
+                </div>
+                <div class="header-actions" style="display:flex; align-items:center; gap:16px;">
+                    <a href="{{ url_for('settings') }}"
+                        style="position:relative; color:#94a3b8; text-decoration:none; font-size:18px;">
+                        <i class="fas fa-bell"></i>
+                        {% if pending_otp_count > 0 %}
+                        <span
+                            style="position:absolute; top:-6px; right:-6px; background:#ef4444; color:white; font-size:10px; font-weight:bold; border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center;">{{
+                            pending_otp_count }}</span>
+                        {% endif %}
+                    </a>
+                    <div class="account-badge">
+                        <i class="fas fa-user-shield"></i>
+                        {{ user.role | title }}
+                    </div>
+                </div>
+            </header>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat,msg in messages %}
+            <div class="alert alert-{{ cat }}"><i class="fas fa-info-circle"></i> {{ msg }}</div>
+            {% endfor %}{% endif %}
+            {% endwith %}
+
+            <div class="settings-grid">
+
+                <!-- Profile -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-user-circle"></i> Profile Information</h3>
+                    <div class="section-title">Account Details</div>
+                    <form method="POST" action="{{ url_for('update_profile') }}">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" name="username" value="{{ user_details.username }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" value="{{ user_details.email }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number</label>
+                            <input type="text" name="mobile" value="{{ user_details.mobile or '' }}"
+                                placeholder="+91 9876543210">
+                        </div>
+                        <div class="form-group">
+                            <label>Account Role</label>
+                            <input type="text" value="{{ user_details.role | title }}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Member Since</label>
+                            <input type="text" value="{{ user_details.created_at[:10] }}" readonly>
+                        </div>
+                        <button type="submit" class="btn-save">
+                            <i class="fas fa-save"></i> Save Profile
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-lock"></i> Change Password</h3>
+                    <div class="section-title">Security</div>
+                    <form method="POST" action="{{ url_for('change_password') }}">
+                        <div class="form-group">
+                            <label>Current Password</label>
+                            <input type="password" name="current_password" required
+                                placeholder="Enter current password">
+                        </div>
+                        <div class="form-group">
+                            <label>New Password</label>
+                            <input type="password" name="new_password" id="new-pass" required
+                                placeholder="Min. 8 characters">
+                            <div class="strength-bar">
+                                <div class="fill" id="strength-fill"></div>
+                            </div>
+                            <div class="strength-label" id="strength-label" style="color:#64748b">Enter a new password
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Confirm New Password</label>
+                            <input type="password" name="confirm_password" id="conf-pass" required
+                                placeholder="Repeat new password">
+                        </div>
+                        <div style="background:rgba(249,115,22,.08);border:1px solid rgba(249,115,22,.2);
+                        border-radius:8px;padding:12px;margin-bottom:16px;font-size:12px;color:#94a3b8">
+                            <i class="fas fa-shield-alt" style="color:#f97316"></i>
+                            After password change, you'll be logged out from all sessions.
+                        </div>
+                        <button type="submit" class="btn-save"
+                            style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Two-Factor Auth info -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-mobile-alt"></i> Two-Factor Authentication</h3>
+                    <div style="text-align:center;padding:20px 0">
+                        <div style="font-size:48px;margin-bottom:16px">🔐</div>
+                        <div style="background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.3);
+                        border-radius:10px;padding:16px;color:#86efac;font-size:14px">
+                            <i class="fas fa-check-circle"></i>
+                            <strong>2FA is enabled</strong>
+                        </div>
+                        <p style="color:#94a3b8;font-size:13px;margin-top:16px;line-height:1.6">
+                            Every login requires a 6-digit OTP sent to your registered email address.
+                            This protects your account even if your password is compromised.
+                        </p>
+                        <p style="color:#64748b;font-size:12px;margin-top:12px">
+                            <i class="fas fa-envelope"></i> OTP sent to: <strong style="color:#f97316">{{
+                                user_details.email }}</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Security Info -->
+                <div class="settings-card">
+                    <h3><i class="fas fa-shield-alt"></i> Data Security</h3>
+                    <div style="display:flex;flex-direction:column;gap:14px">
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;
+                        background:rgba(15,23,42,.5);border-radius:10px;border:1px solid rgba(71,85,105,.3)">
+                            <div style="font-size:22px">🔒</div>
+                            <div>
+                                <div style="color:#f1f5f9;font-size:13px;font-weight:600">AES-256 + ChaCha20 Encryption
+                                </div>
+                                <div style="color:#64748b;font-size:12px">All evidence encrypted at rest using
+                                    military-grade hybrid encryption</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;
+                        background:rgba(15,23,42,.5);border-radius:10px;border:1px solid rgba(71,85,105,.3)">
+                            <div style="font-size:22px">#️⃣</div>
+                            <div>
+                                <div style="color:#f1f5f9;font-size:13px;font-weight:600">SHA-256 Tamper Detection</div>
+                                <div style="color:#64748b;font-size:12px">Every file hash recorded. Any tampering is
+                                    immediately detected</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;
+                        background:rgba(15,23,42,.5);border-radius:10px;border:1px solid rgba(71,85,105,.3)">
+                            <div style="font-size:22px">📋</div>
+                            <div>
+                                <div style="color:#f1f5f9;font-size:13px;font-weight:600">Immutable Audit Trail</div>
+                                <div style="color:#64748b;font-size:12px">Every action logged with timestamp and IP
+                                    address</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;
+                        background:rgba(15,23,42,.5);border-radius:10px;border:1px solid rgba(71,85,105,.3)">
+                            <div style="font-size:22px">🗑️</div>
+                            <div>
+                                <div style="color:#f1f5f9;font-size:13px;font-weight:600">Admin-Approved Deletion</div>
+                                <div style="color:#64748b;font-size:12px">Evidence can only be deleted after admin
+                                    reviews and approves your request</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Requests -->
+                <div class="settings-card full-width">
+                    <h3><i class="fas fa-trash-alt"></i> My Delete Requests</h3>
+                    {% if del_requests %}
+                    <table class="del-table">
+                        <thead>
+                            <tr>
+                                <th>Evidence ID</th>
+                                <th>File Name</th>
+                                <th>Reason</th>
+                                <th>Status</th>
+                                <th>Requested</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dr in del_requests %}
+                            <tr>
+                                <td style="font-family:monospace;color:#f97316;font-size:12px">{{ dr.evidence_id }}</td>
+                                <td>{{ dr.original_name }}</td>
+                                <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{
+                                    dr.reason }}</td>
+                                <td>
+                                    <span class="badge badge-{{ dr.status }}">{{ dr.status | title }}</span>
+                                </td>
+                                <td style="color:#64748b;font-size:12px">{{ dr.requested_at[:10] }}</td>
+                                <td>
+                                    {% if dr.status == 'otp_pending' %}
+                                    <form method="POST" action="{{ url_for('verify_delete_otp', req_id=dr.id) }}"
+                                        style="display:flex;gap:8px;align-items:center;">
+                                        <input type="text" name="otp" placeholder="Enter OTP" required
+                                            style="padding:6px 10px;border:1px solid #475569;background:#1e293b;color:#f1f5f9;border-radius:6px;font-size:12px;width:100px;">
+                                        <button type="submit" class="btn btn-primary"
+                                            style="padding:6px 12px;font-size:11px;">
+                                            Verify & Delete
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <span style="color:#64748b;font-size:12px;">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                    <!-- OTP Instructions -->
+                    {% set ns = namespace(found=false) %}
+                    {% for dr in del_requests %}
+                    {% if dr.status == 'otp_pending' and not ns.found %}
+                    <div
+                        style="margin-top:20px;padding:16px;background:rgba(249,115,22,0.1);border:1px solid rgba(249,115,22,0.3);border-radius:8px;">
+                        <h4 style="color:#f97316;margin:0 0 8px 0;font-size:14px;">
+                            <i class="fas fa-key"></i> OTP Verification Required
+                        </h4>
+                        <p style="color:#cbd5e1;margin:0;font-size:13px;line-height:1.5;">
+                            Your delete request for <strong>{{ dr.evidence_id }}</strong> has been approved by admin.
+                            A 6-digit OTP has been sent to your email. Enter the OTP above to confirm deletion.
+                        </p>
+                    </div>
+                    {% set ns.found = true %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% else %}
+                    <div style="text-align:center;padding:30px;color:#475569">
+                        <i class="fas fa-check-circle" style="font-size:32px;margin-bottom:12px;color:#22c55e"></i>
+                        <p>No delete requests submitted</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Password strength meter
+        const pw = document.getElementById('new-pass');
+        const fill = document.getElementById('strength-fill');
+        const label = document.getElementById('strength-label');
+        pw && pw.addEventListener('input', () => {
+            const v = pw.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (v.length >= 12) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            const levels = [
+                { w: '20%', color: '#ef4444', text: 'Very Weak' },
+                { w: '40%', color: '#f97316', text: 'Weak' },
+                { w: '60%', color: '#eab308', text: 'Fair' },
+                { w: '80%', color: '#22c55e', text: 'Strong' },
+                { w: '100%', color: '#10b981', text: 'Very Strong' },
+            ];
+            const lv = levels[Math.max(0, Math.min(score - 1, 4))];
+            fill.style.width = lv.w;
+            fill.style.background = lv.color;
+            label.textContent = lv.text;
+            label.style.color = lv.color;
+        });
+
+        // Show success popup for deletion
+        function showDeletionPopup() {
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(135deg, #10b981, #059669);
+                color: white;
+                padding: 30px;
+                border-radius: 16px;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -6px rgba(0, 0, 0, 0.04);
+                z-index: 10000;
+                text-align: center;
+                min-width: 350px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            popup.innerHTML = `
+                <div style="font-size: 48px; margin-bottom: 16px;">🗑️</div>
+                <h3 style="margin: 0 0 12px 0; font-size: 20px; font-weight: 700;">Evidence Deleted Successfully!</h3>
+                <p style="margin: 0 0 20px 0; opacity: 0.9;">The evidence has been permanently removed from the system.</p>
+                <button onclick="this.parentElement.remove()" style="
+                    background: white;
+                    color: #059669;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 8px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    font-size: 14px;
+                ">OK</button>
+            `;
+            document.body.appendChild(popup);
+
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 5000);
+        }
+
+        // Check for success message and show popup
+        document.addEventListener('DOMContentLoaded', function () {
+            const alerts = document.querySelectorAll('.alert-success');
+            alerts.forEach(alert => {
+                if (alert.textContent.includes('deleted successfully')) {
+                    showDeletionPopup();
+                }
+            });
+        });
+
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+
+</html>

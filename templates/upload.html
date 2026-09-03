@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Evidence - Digital Evidence Locker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* ===== Upload Page Specific Styles ===== */
+        .upload-page-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: #da8600;
+            margin-bottom: 4px;
+        }
+
+        .upload-page-title span {
+            color: #ffffff;
+            font-weight: 400;
+            font-size: 14px;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ---- Type Selector Tabs ---- */
+        .upload-type-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+        }
+
+        .type-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(21, 21, 21, 0.07);
+            color: rgba(9, 9, 9, 0.556);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .type-tab i {
+            font-size: 15px;
+        }
+
+        .type-tab:hover {
+            border-color: #007bff;
+            color: #fff;
+            background: rgba(0, 123, 255, 0.12);
+        }
+
+        .type-tab.active {
+            background: #007bff;
+            border-color: #007bff;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(0, 123, 255, 0.4);
+        }
+
+        /* ---- Upload Card ---- */
+        .upload-card {
+            background: linear-gradient(135deg, #3a3a3a, #0f0f0f);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            padding: 32px;
+            backdrop-filter: blur(8px);
+        }
+
+        /* ---- Drop Zone ---- */
+        .drop-zone {
+            border: 2px dashed rgba(0, 123, 255, 0.4);
+            border-radius: 14px;
+            padding: 48px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(0, 123, 255, 0.04);
+            position: relative;
+        }
+
+        .drop-zone:hover,
+        .drop-zone.drag-over {
+            border-color: #007bff;
+            background: rgba(0, 123, 255, 0.1);
+            transform: scale(1.01);
+        }
+
+        .drop-zone input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .drop-zone-icon {
+            font-size: 56px;
+            margin-bottom: 16px;
+            display: block;
+            filter: drop-shadow(0 2px 8px rgba(0, 123, 255, 0.3));
+        }
+
+        .drop-zone h3 {
+            font-size: 18px;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+
+        .drop-zone p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+        }
+
+        .drop-zone .browse-link {
+            color: #007bff;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .file-types-hint {
+            margin-top: 12px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            letter-spacing: 0.5px;
+        }
+
+        /* ---- Preview Strip ---- */
+        .preview-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .preview-thumb {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .preview-thumb img,
+        .preview-thumb video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-thumb .file-icon-thumb {
+            font-size: 28px;
+            color: #007bff;
+        }
+
+        .preview-thumb .file-name-thumb {
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: center;
+            padding: 0 4px;
+            word-break: break-all;
+        }
+
+        .preview-thumb .remove-thumb {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            background: rgba(220, 53, 69, 0.85);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 9px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ---- Text Note Panel ---- */
+        .text-note-panel {
+            display: none;
+        }
+
+        .text-note-panel.visible {
+            display: block;
+        }
+
+        .note-toolbar {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .note-toolbar button {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .note-toolbar button:hover {
+            background: rgba(0, 123, 255, 0.2);
+            color: #fff;
+            border-color: #007bff;
+        }
+
+        .note-textarea {
+            width: 100%;
+            min-height: 200px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 16px;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+            resize: vertical;
+            transition: border-color 0.25s;
+            outline: none;
+        }
+
+        .note-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .note-textarea:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-top: 6px;
+        }
+
+        /* ---- Meta Fields ---- */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-top: 28px;
+        }
+
+        .meta-grid .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group label span.required {
+            color: #dc3545;
+            margin-left: 2px;
+        }
+
+        .form-control {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: border-color 0.25s;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+        }
+
+        select.form-control option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        /* ---- Priority Selector ---- */
+        .priority-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .priority-btn {
+            flex: 1;
+            padding: 9px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.55);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .priority-btn:hover {
+            opacity: 0.85;
+        }
+
+        .priority-btn.low.active {
+            background: #198754;
+            border-color: #198754;
+            color: #fff;
+        }
+
+        .priority-btn.med.active {
+            background: #ffc107;
+            border-color: #ffc107;
+            color: #000;
+        }
+
+        .priority-btn.high.active {
+            background: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+        /* ---- Encryption toggle ---- */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+        }
+
+        .toggle-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toggle-info i {
+            font-size: 20px;
+            color: #28a745;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .toggle-sub {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: white;
+            left: 3px;
+            top: 3px;
+            transition: 0.3s;
+        }
+
+        .toggle-switch input:checked+.toggle-slider {
+            background: #28a745;
+        }
+
+        .toggle-switch input:checked+.toggle-slider:before {
+            transform: translateX(22px);
+        }
+
+        /* ---- Action Buttons ---- */
+        .upload-actions {
+            display: flex;
+            gap: 14px;
+            margin-top: 32px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            padding: 12px 28px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+        .btn-upload {
+            padding: 12px 32px;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.35);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.45);
+        }
+
+        .btn-upload:active {
+            transform: translateY(0);
+        }
+
+        /* ---- Progress Bar ---- */
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .upload-progress.visible {
+            display: block;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 6px;
+        }
+
+        .progress-bar-wrap {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            height: 8px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007bff, #00d4ff);
+            border-radius: 20px;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* ---- Flash messages ---- */
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-box.success {
+            background: rgba(40, 167, 69, 0.15);
+            border: 1px solid rgba(40, 167, 69, 0.4);
+            color: #82e09e;
+        }
+
+        .alert-box.error {
+            background: rgba(220, 53, 69, 0.15);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            color: #f08090;
+        }
+
+        /* ---- Responsive ---- */
+        @media (max-width: 768px) {
+            .meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .upload-type-tabs {
+                gap: 6px;
+            }
+
+            .type-tab {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+
+            .upload-actions {
+                flex-direction: column;
+            }
+
+            .btn-upload,
+            .btn-cancel {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body class="dashboard-body">
+    <div class="background-pattern"></div>
+
+    <div class="dashboard-container">
+        <!-- ===== Sidebar ===== -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-container small">
+                    <img src="{{ url_for('static', filename='assets/logo.png') }}" alt="Logo" class="logo-image small">
+                    <h2 class="logo-text">DgEvidanceLocker</h2>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="{{ url_for('home') }}">
+                            <i class="fas fa-th-large"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('my_evidence') }}">
+                            <i class="fas fa-folder-open"></i>
+                            <span>My Evidence</span>
+                        </a>
+                    </li>
+                    <li class="active">
+                        <a href="{{ url_for('upload') }}">
+                            <i class="fas fa-file-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('cases') }}">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Cases</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('recent_activity') }}">
+                            <i class="fas fa-history"></i>
+                            <span>Recent Activity</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('settings') }}">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('logout') }}" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ===== Main Content ===== -->
+        <main class="dashboard-main">
+
+            <!-- Page Header -->
+            <header class="dashboard-header">
+                <div class="welcome-text">
+                    <h1 class="upload-page-title">
+                        Upload Evidence
+                        <span>Securely store and encrypt your digital evidence</span>
+                    </h1>
+                </div>
+                <div class="header-actions">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search evidence...">
+                    </div>
+                    <div class="user-profile">
+                        <div class="notification-badge">
+                            <i class="fas fa-bell"></i>
+                            <span class="badge">3</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=007bff&color=fff"
+                            alt="Profile" class="profile-img">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert-box {{ 'success' if category == 'success' else 'error' }}">
+                <i class="fas {{ 'fa-check-circle' if category == 'success' else 'fa-exclamation-circle' }}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Evidence Type Tabs -->
+            <div class="upload-type-tabs" id="typeTabs">
+                <button class="type-tab active" data-type="image" onclick="switchTab(this, 'image')">
+                    <i class="fas fa-image"></i> Image
+                </button>
+                <button class="type-tab" data-type="video" onclick="switchTab(this, 'video')">
+                    <i class="fas fa-video"></i> Video
+                </button>
+                <button class="type-tab" data-type="audio" onclick="switchTab(this, 'audio')">
+                    <i class="fas fa-microphone"></i> Audio
+                </button>
+                <button class="type-tab" data-type="document" onclick="switchTab(this, 'document')">
+                    <i class="fas fa-file-alt"></i> Document
+                </button>
+                <button class="type-tab" data-type="text" onclick="switchTab(this, 'text')">
+                    <i class="fas fa-pen"></i> Type Text
+                </button>
+                <button class="type-tab" data-type="anyfile" onclick="switchTab(this, 'anyfile')">
+                    <i class="fas fa-paperclip"></i> Any File
+                </button>
+            </div>
+
+            <!-- Upload Form -->
+            <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <input type="hidden" name="evidence_type" id="evidenceTypeInput" value="image">
+
+                <div class="upload-card">
+
+                    <!-- ===== Drop Zone (hidden for text tab) ===== -->
+                    <div id="dropZoneWrapper">
+                        <div class="drop-zone" id="dropZone">
+                            <input type="file" name="evidence_file" id="fileInput" multiple>
+                            <span class="drop-zone-icon" id="dropZoneIcon">🖼️</span>
+                            <h3>Drag & Drop your files here</h3>
+                            <p>or <span class="browse-link">browse to choose files</span></p>
+                            <p class="file-types-hint" id="fileTypesHint">Accepted: JPG, PNG, GIF, WEBP, HEIC — Max 50
+                                MB each</p>
+                        </div>
+
+                        <!-- Preview Strip -->
+                        <div class="preview-strip" id="previewStrip"></div>
+                    </div>
+
+                    <!-- ===== Text Note Panel ===== -->
+                    <div class="text-note-panel" id="textNotePanel">
+                        <div class="note-toolbar">
+                            <button type="button" title="Bold" onclick="formatText('bold')"><i
+                                    class="fas fa-bold"></i></button>
+                            <button type="button" title="Italic" onclick="formatText('italic')"><i
+                                    class="fas fa-italic"></i></button>
+                            <button type="button" title="Underline" onclick="formatText('underline')"><i
+                                    class="fas fa-underline"></i></button>
+                            <button type="button" title="Bullet List" onclick="formatText('list')"><i
+                                    class="fas fa-list-ul"></i></button>
+                            <button type="button" title="Clear" onclick="clearNote()"><i
+                                    class="fas fa-trash-alt"></i></button>
+                        </div>
+                        <textarea class="note-textarea" name="text_note" id="textNote"
+                            placeholder="Type your evidence note, observation, testimony, or any text here…"
+                            maxlength="10000" oninput="updateCharCount()"></textarea>
+                        <div class="char-count"><span id="charCount">0</span> / 10,000 characters</div>
+                    </div>
+
+                    <!-- ===== Meta Information ===== -->
+                    <div class="meta-grid">
+                        <!-- Case ID -->
+                        <div class="form-group">
+                            <label>Case ID / Reference <span class="required">*</span></label>
+                            <input type="text" name="case_id" class="form-control" placeholder="e.g. CASE-2026-045"
+                                required>
+                        </div>
+
+                        <!-- Evidence Title -->
+                        <div class="form-group">
+                            <label>Evidence Title <span class="required">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="Short descriptive title"
+                                required>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group full-width">
+                            <label>Description / Notes</label>
+                            <textarea name="description" class="form-control" rows="3"
+                                placeholder="Provide context, location, time, witness info, or any relevant details…"
+                                style="resize:vertical;"></textarea>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="form-group">
+                            <label>Evidence Category</label>
+                            <select name="category" class="form-control">
+                                <option value="">— Select Category —</option>
+                                <option value="crime_scene">Crime Scene</option>
+                                <option value="witness">Witness Statement</option>
+                                <option value="forensic">Forensic Report</option>
+                                <option value="cctv">CCTV / Surveillance</option>
+                                <option value="financial">Financial Records</option>
+                                <option value="communication">Communication Logs</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+
+                        <!-- Collection Date -->
+                        <div class="form-group">
+                            <label>Date Collected</label>
+                            <input type="datetime-local" name="collected_at" class="form-control" id="collectedAt">
+                        </div>
+
+                        <!-- Location -->
+                        <div class="form-group full-width">
+                            <label>Collection Location</label>
+                            <input type="text" name="location" class="form-control"
+                                placeholder="e.g. 45 Main Street, City / GPS: 28.7041° N, 77.1025° E">
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="form-group full-width">
+                            <label>Tags <span
+                                    style="font-size:10px; color:rgba(255,255,255,0.35); text-transform:none; letter-spacing:0;">(comma-separated)</span></label>
+                            <input type="text" name="tags" class="form-control"
+                                placeholder="e.g. robbery, cctv, suspect, fingerprint">
+                        </div>
+
+                        <!-- Priority -->
+                        <div class="form-group full-width">
+                            <label>Priority Level</label>
+                            <input type="hidden" name="priority" id="priorityInput" value="medium">
+                            <div class="priority-selector">
+                                <button type="button" class="priority-btn low" onclick="setPriority('low', this)">🟢
+                                    Low</button>
+                                <button type="button" class="priority-btn med active"
+                                    onclick="setPriority('medium', this)">🟡 Medium</button>
+                                <button type="button" class="priority-btn high" onclick="setPriority('high', this)">🔴
+                                    High</button>
+                            </div>
+                        </div>
+
+                        <!-- ===== Enhanced Security Section ===== -->
+                        <div class="security-section"
+                            style="margin-top: 24px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <h3
+                                style="font-size: 16px; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-shield-alt" style="color: #00d4ff;"></i> Enhanced File Security
+                            </h3>
+
+                            <div class="meta-grid">
+                                <!-- Encryption Password -->
+                                <div class="form-group">
+                                    <label>Encryption Password <span class="required">*</span></label>
+                                    <div style="position: relative;">
+                                        <input type="password" name="enc_password" id="encPassword" class="form-control"
+                                            autocomplete="new-password" placeholder="Create a strong password" required>
+                                        <i class="fas fa-eye" id="toggleEncPass"
+                                            style="position: absolute; right: 12px; top: 12px; cursor: pointer; color: rgba(255,255,255,0.4);"></i>
+                                    </div>
+                                    <div id="passStrength"
+                                        style="height: 4px; background: rgba(255,255,255,0.1); margin-top: 8px; border-radius: 2px; overflow: hidden; display: none;">
+                                        <div id="passStrengthFill" style="height: 100%; width: 0%; transition: 0.3s;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Confirm Encryption Password -->
+                                <div class="form-group">
+                                    <label>Confirm Password <span class="required">*</span></label>
+                                    <input type="password" id="confirmEncPassword" class="form-control"
+                                        autocomplete="new-password" placeholder="Repeat password" required>
+                                    <div id="passMatchMsg" style="font-size: 11px; margin-top: 6px; display: none;">
+                                    </div>
+                                </div>
+
+                                <!-- Security Question -->
+                                <div class="form-group">
+                                    <label>Security Question <span class="required">*</span></label>
+                                    <select name="security_question" id="secQuestionSelect" class="form-control"
+                                        required onchange="handleQuestionChange(this)">
+                                        <option value="">— Select a Question —</option>
+                                        <option value="What is your favorite color?">What is your favorite color?
+                                        </option>
+                                        <option value="What was the name of your first pet?">What was the name of your
+                                            first pet?</option>
+                                        <option value="What is your favorite food?">What is your favorite food?</option>
+                                        <option value="Who was your childhood best friend?">Who was your childhood best
+                                            friend?</option>
+                                        <option value="What is the name of your favorite place?">What is the name of
+                                            your favorite place?</option>
+                                        <option value="custom">Custom Question...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Custom Question (Hidden by default) -->
+                                <div class="form-group" id="customQuestionGroup" style="display: none;">
+                                    <label>Your Custom Question</label>
+                                    <input type="text" id="customQuestionInput" class="form-control"
+                                        placeholder="Type your own question">
+                                </div>
+
+                                <!-- Security Answer -->
+                                <div class="form-group full-width">
+                                    <label>Security Answer <span class="required">*</span></label>
+                                    <div style="position: relative;">
+                                        <input type="password" name="security_answer" id="securityAnswer"
+                                            autocomplete="new-password" class="form-control"
+                                            placeholder="Answer to your chosen question" required>
+                                        <i class="fas fa-eye" id="toggleSecAnswer"
+                                            style="position: absolute; right: 12px; top: 12px; cursor: pointer; color: rgba(255,255,255,0.4);"></i>
+                                    </div>
+                                    <p
+                                        style="font-size: 11px; color: #ffc107; margin-top: 8px; opacity: 0.9; line-height: 1.4;">
+                                        <i class="fas fa-exclamation-triangle"></i> <strong>Important:</strong> This
+                                        answer (and password) will be required every time you want to view or download
+                                        this file.
+                                        <span
+                                            style="display: block; color: rgba(255,255,255,0.5); font-style: italic;">We
+                                            do not store these; they cannot be recovered if lost.</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Upload Progress -->
+                        <div class="upload-progress" id="uploadProgress">
+                            <div class="progress-label">
+                                <span id="progressText">Uploading…</span>
+                                <span id="progressPct">0%</span>
+                            </div>
+                            <div class="progress-bar-wrap">
+                                <div class="progress-bar-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="upload-actions">
+                            <a href="{{ url_for('home') }}" class="btn-cancel">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn-upload" id="submitBtn">
+                                <i class="fas fa-cloud-upload-alt"></i> Upload &amp; Secure
+                            </button>
+                        </div>
+
+                    </div><!-- /.upload-card -->
+            </form>
+
+        </main>
+    </div><!-- /.dashboard-container -->
+
+    <script>
+        // ===== Tab switching =====
+        const tabConfig = {
+            image: { icon: '🖼️', hint: 'Accepted: JPG, PNG, GIF, WEBP, HEIC — Max 50 MB each', accept: 'image/*', multiple: true },
+            video: { icon: '🎥', hint: 'Accepted: MP4, MOV, AVI, MKV, WEBM — Max 500 MB each', accept: 'video/*', multiple: true },
+            audio: { icon: '🎙️', hint: 'Accepted: MP3, WAV, OGG, FLAC, M4A — Max 100 MB each', accept: 'audio/*', multiple: true },
+            document: { icon: '📄', hint: 'Accepted: PDF, DOCX, XLSX, PPTX, TXT — Max 50 MB each', accept: '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.odt', multiple: true },
+            text: { icon: '✏️', hint: '', accept: '', multiple: false },
+            anyfile: { icon: '📎', hint: 'Any file type — Max 200 MB each', accept: '*/*', multiple: true },
+        };
+
+        function switchTab(btn, type) {
+            // Update active tab style
+            document.querySelectorAll('.type-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Update hidden input
+            document.getElementById('evidenceTypeInput').value = type;
+
+            const cfg = tabConfig[type];
+            const dropWrapper = document.getElementById('dropZoneWrapper');
+            const textPanel = document.getElementById('textNotePanel');
+            const fileInput = document.getElementById('fileInput');
+
+            if (type === 'text') {
+                dropWrapper.style.display = 'none';
+                textPanel.classList.add('visible');
+                // Text note is not a file upload
+                fileInput.removeAttribute('required');
+            } else {
+                dropWrapper.style.display = 'block';
+                textPanel.classList.remove('visible');
+                // Update drop zone visuals
+                document.getElementById('dropZoneIcon').textContent = cfg.icon;
+                document.getElementById('fileTypesHint').textContent = cfg.hint;
+            }
+        }
+
+        function handleQuestionChange(select) {
+            const customGroup = document.getElementById('customQuestionGroup');
+            const customInput = document.getElementById('customQuestionInput');
+            if (select.value === 'custom') {
+                customGroup.style.display = 'block';
+                customInput.setAttribute('required', 'required');
+                customInput.setAttribute('name', 'security_question');
+                select.removeAttribute('name');
+            } else {
+                if (customGroup) customGroup.style.display = 'none';
+                if (customInput) {
+                    customInput.removeAttribute('required');
+                    customInput.removeAttribute('name');
+                }
+                select.setAttribute('name', 'security_question');
+            }
+        }
+
+        // ===== Password Toggle =====
+        function setupToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+            if (toggle && input) {
+                toggle.onclick = function () {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    this.classList.toggle('fa-eye');
+                    this.classList.toggle('fa-eye-slash');
+                };
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            setupToggle('toggleEncPass', 'encPassword');
+            setupToggle('toggleSecAnswer', 'securityAnswer');
+        });
+
+        // ===== Drag & Drop =====
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const fileInput = document.getElementById('fileInput');
+            const files = e.dataTransfer.files;
+            // Assign dropped files to input via DataTransfer
+            const dt = new DataTransfer();
+            for (const f of files) dt.items.add(f);
+            fileInput.files = dt.files;
+            renderPreviews(files);
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function () {
+            renderPreviews(this.files);
+        });
+
+        function renderPreviews(files) {
+            const strip = document.getElementById('previewStrip');
+            strip.innerHTML = '';
+            const activeType = document.getElementById('evidenceTypeInput').value;
+
+            Array.from(files).forEach((file, idx) => {
+                const thumb = document.createElement('div');
+                thumb.className = 'preview-thumb';
+                thumb.id = 'thumb-' + idx;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'remove-thumb';
+                removeBtn.innerHTML = '✕';
+                removeBtn.onclick = () => thumb.remove();
+                thumb.appendChild(removeBtn);
+
+                if (activeType === 'image' && file.type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.alt = file.name;
+                    thumb.appendChild(img);
+                } else if (activeType === 'video' && file.type.startsWith('video/')) {
+                    const vid = document.createElement('video');
+                    vid.src = URL.createObjectURL(file);
+                    vid.muted = true;
+                    vid.preload = 'metadata';
+                    thumb.appendChild(vid);
+                } else {
+                    // Generic file icon
+                    const iconMap = {
+                        'audio': 'fa-music',
+                        'application/pdf': 'fa-file-pdf',
+                        'text': 'fa-file-alt',
+                    };
+                    let iconClass = 'fa-file';
+                    for (const [key, val] of Object.entries(iconMap)) {
+                        if (file.type.startsWith(key) || file.type === key) { iconClass = val; break; }
+                    }
+                    const icon = document.createElement('i');
+                    icon.className = `fas ${iconClass} file-icon-thumb`;
+                    const name = document.createElement('div');
+                    name.className = 'file-name-thumb';
+                    name.textContent = file.name.length > 14 ? file.name.slice(0, 12) + '…' : file.name;
+                    thumb.appendChild(icon);
+                    thumb.appendChild(name);
+                }
+
+                strip.appendChild(thumb);
+            });
+        }
+
+        function clearPreviews() {
+            document.getElementById('previewStrip').innerHTML = '';
+        }
+
+        // ===== Text note helpers =====
+        function updateCharCount() {
+            const ta = document.getElementById('textNote');
+            document.getElementById('charCount').textContent = ta.value.length.toLocaleString();
+        }
+
+        function formatText(cmd) {
+            if (cmd === 'list') {
+                const ta = document.getElementById('textNote');
+                const start = ta.selectionStart;
+                const before = ta.value.substring(0, start);
+                const after = ta.value.substring(ta.selectionEnd);
+                ta.value = before + '\n• ' + after;
+                ta.selectionStart = ta.selectionEnd = start + 3;
+            } else {
+                document.execCommand(cmd, false, null);
+            }
+        }
+
+        function clearNote() {
+            if (confirm('Clear all text?')) {
+                document.getElementById('textNote').value = '';
+                updateCharCount();
+            }
+        }
+
+        // ===== Priority =====
+        function setPriority(val, btn) {
+            document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('priorityInput').value = val;
+        }
+
+        // ===== Set current datetime as default =====
+        (function setDefaultDate() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const local = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+            document.getElementById('collectedAt').value = local;
+        })();
+
+        // ===== Form submit — show progress bar =====
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            const activeType = document.getElementById('evidenceTypeInput').value;
+            // Validate: file must be selected for non-text tabs
+            if (activeType !== 'text') {
+                const fi = document.getElementById('fileInput');
+                if (!fi.files || fi.files.length === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one file to upload.');
+                    return;
+                }
+            }
+
+            document.getElementById('uploadProgress').classList.add('visible');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading…';
+
+            // Simulated progress (real progress requires XHR)
+            let pct = 0;
+            const fill = document.getElementById('progressFill');
+            const pctLabel = document.getElementById('progressPct');
+            const timer = setInterval(() => {
+                pct = Math.min(pct + Math.random() * 12, 90);
+                fill.style.width = pct + '%';
+                pctLabel.textContent = Math.round(pct) + '%';
+                if (pct >= 90) clearInterval(timer);
+            }, 300);
+        });
+    </script>
+</body>
+
+</html>
